@@ -54,12 +54,14 @@ int systemState = SYSTEM_STATE_MENU;
 
 int joystickX = 0;
 int joystickY = 0;
+int rawJoystickX = 0;
+int rawJoystickY = 0;
 
-#define JOYSTICK_IDLE 0
-#define JOYSTICK_UP 1
-#define JOYSTICK_DOWN 2
+#define AXIS_IDLE 0
+#define AXIS_POSITIVE 1
+#define AXIS_NEGATIVE -1
 
-int menuDirection = JOYSTICK_IDLE;
+int menuDirection = AXIS_IDLE;
 
 String menuTitle = "    Cave Run";
 String menuItems[] = {"Start Game", "Highscores", "Settings", "About"};
@@ -129,16 +131,13 @@ void setup() {
 }
 
 void updateMenu(short menuAction) {
-  if (menuAction == JOYSTICK_DOWN && selectedMenuItem < (menuItemsCount-1)) {
+  if (menuAction == AXIS_NEGATIVE && selectedMenuItem < (menuItemsCount-1)) {
     selectedMenuItem += 1;
   }
 
-  if (menuAction == JOYSTICK_UP && selectedMenuItem > 0) {
+  if (menuAction == AXIS_POSITIVE && selectedMenuItem > 0) {
     selectedMenuItem -= 1;
   }
-
-  
-  
 }
 
 void drawMenu() {
@@ -179,11 +178,11 @@ void menu() {
 
 short getMenuAction() {
 
-  short reading = getMenuReading();
+  short reading = joystickY;
 
   if (!reading) {
     isJoystickMovedMenu = false;
-    return JOYSTICK_IDLE;
+    return AXIS_IDLE;
   }
 
   if (!isJoystickMovedMenu) {
@@ -191,29 +190,41 @@ short getMenuAction() {
     return reading;
   }
 
-  return JOYSTICK_IDLE;
+  return AXIS_IDLE;
 }
 
-short getMenuReading() {
-  if (joystickY >= JOYSTICK_MIN_TRESHOLD && joystickY <= JOYSTICK_MAX_TRESHOLD) {
-    return JOYSTICK_IDLE;
-  }
 
-  if (joystickY < JOYSTICK_MIN_TRESHOLD) {
-    return JOYSTICK_UP;
-  }
+void computeJoystickValues() {
   
-  return JOYSTICK_DOWN;
+  rawJoystickX = analogRead(JOYSTICK_X);
+  rawJoystickY = analogRead(JOYSTICK_Y);
+
+    if (rawJoystickY >= JOYSTICK_MIN_TRESHOLD && rawJoystickY <= JOYSTICK_MAX_TRESHOLD) {
+      joystickY = AXIS_IDLE;
+    } else if (rawJoystickY < JOYSTICK_MIN_TRESHOLD) {
+      joystickY = AXIS_POSITIVE;
+    } else {
+      joystickY = AXIS_NEGATIVE;
+    }
+
+    if (rawJoystickX >= JOYSTICK_MIN_TRESHOLD && rawJoystickX <= JOYSTICK_MAX_TRESHOLD) {
+      joystickX = AXIS_IDLE;
+    } else if (rawJoystickX < JOYSTICK_MIN_TRESHOLD) {
+      joystickX = AXIS_POSITIVE;
+    } else {
+      joystickX = AXIS_NEGATIVE;
+    }
+
+    Serial.print(joystickX);
+    Serial.print(" ");
+    Serial.println(joystickY);
 }
 
-void getRawJoystickValues() {
-  joystickX = analogRead(JOYSTICK_X);
-  joystickY = analogRead(JOYSTICK_Y);
-}
+
 
 void loop() {
   
-  getRawJoystickValues();
+  computeJoystickValues();
   switch (systemState) {
     case SYSTEM_STATE_MENU:
       menu();
