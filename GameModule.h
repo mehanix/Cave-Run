@@ -18,18 +18,19 @@ bool gameMap[MAP_SIZE][MAP_SIZE];
 Coordinate displayedRegion = {0, 0};
 bool shouldRedrawMap = true;
 bool shouldRedrawLcd = true;
+bool shouldRedrawScore = true;
 bool bombWentOff = false;
 
 bool ledExplosionState = 0;
 
-long long lastExplosionTime = 0;
-long long lastLedChangeTime = 0;
+long long lastExplosionTime;
+long long lastLedChangeTime;
 
 byte currentLevel = 0;
 byte gameState = SYSTEM_STATE_GAME_SETUP;
 
-short startTime = 0;
-short elapsedTime = 0;
+long long startTime = 0;
+long long elapsedTime = 0;
 byte lcdTime = 0;
 
 struct Player {
@@ -56,11 +57,39 @@ struct RoomData {
 
 
 void reset() {
-    for (int i = 0; i < MAP_SIZE; i++) {
-      for (int j = 0; j < MAP_SIZE; j++) {
-        gameMap[i][j] = 0;
-      }
+  for (int i = 0; i < MAP_SIZE; i++) {
+    for (int j = 0; j < MAP_SIZE; j++) {
+      gameMap[i][j] = 0;
     }
+  }
+
+  player.pos = {1, 1};
+  player.previousPos = {1, 1};
+  player.lives = 3;
+  player.lastMoveTime = 0;
+  player.shouldRedraw = true;
+  player.keysLeft;
+  player.score = 0;
+
+  level.isDoorOpen = false;
+
+  displayedRegion = {0, 0};
+  shouldRedrawMap = true;
+  shouldRedrawLcd = true;
+  shouldRedrawScore = true;
+  bombWentOff = false;
+  
+  ledExplosionState = 0;
+  
+  lastExplosionTime = 0;
+  lastLedChangeTime = 0;
+
+    
+  currentLevel = 0;
+  gameState = SYSTEM_STATE_GAME_SETUP;
+  
+  elapsedTime = 0;
+  lcdTime = 0;
 }
 
 Coordinate getObjectRegion(Coordinate obj) {
@@ -101,8 +130,8 @@ void drawLcdText() {
   lcd.print("Time:");
   lcd.print(GAME_DURATION);
 
-  lcd.setCursor(10,1);
-  lcd.print("left");
+  lcd.setCursor(8,1);
+  lcd.print("Pts:");
 
   drawLcdPlayerStats();
 }
@@ -190,20 +219,21 @@ void generateObjects(short difficulty) {
 
 void updateScoreEvent(byte event) {
 
-//  switch (event) {
-//    case KEY_PICKUP:
-//      player.score += 100 - elapsedTime;
-//      return;
-//    case BOMB_PICKUP:
-//      player.score -= lcdTime;
-//      return;
-//    case DOOR_OPEN:
-//      player.score += 2 * lcdTime;
-//      return;
-//    case DOOR_ENTER:
-//      player.score += 2 * lcdTime;
-//      return;
-//  }
+  switch (event) {
+    case KEY_PICKUP:
+      player.score += 100 - elapsedTime;
+      break;
+    case BOMB_PICKUP:
+      player.score -= lcdTime;
+      break;
+    case DOOR_OPEN:
+      player.score += 2 * lcdTime;
+      break;
+    case DOOR_ENTER:
+      player.score += 2 * lcdTime;
+      break;
+  }
+  shouldRedrawScore = true;
 }
 void generateLevel(short difficulty) {
   // POC, first level. 3 keys, 3 bombs, spawned at fixed positions for now that fit, 8x8 room.
@@ -216,7 +246,6 @@ void gameSetup() {
   reset();
   generateLevel(DIFFICULTY_MEDIUM);
   lcdTime = 60;
-  player.score = 0;
 }
 
 void drawPlayer() {
@@ -333,6 +362,7 @@ void updateDoor() {
       drawLcdPlayerStats();
       shouldRedrawMap = true;
       updateScoreEvent(DOOR_OPEN);
+      shouldRedrawScore = false;
     }
 }
 
@@ -379,6 +409,8 @@ void endGameDisplay(byte image[], String message) {
   lcd.print(message);
   lcd.setCursor(0, 1);
   lcd.print("Your score:");
+  lcd.print(player.score);
+
 }
 
 void endGame(byte reason) {
@@ -399,18 +431,31 @@ void endGame(byte reason) {
       break;    
   }
 
+  currentPlayer.score = player.score;
+  saveScore();
 }
 
 
 void updateTime() {
+  
   elapsedTime = (millis() - startTime)/1000;
-  Serial.println(elapsedTime);
   short timeLeft = GAME_DURATION - elapsedTime;
+  Serial.println(int(elapsedTime));
   if (lcdTime != timeLeft) {
     lcdTime = timeLeft;
     drawLcdTime(lcdTime);
   }
 
+}
+
+void updateScore() {
+  if (!shouldRedrawScore) {
+    return;
+  }
+
+  lcd.setCursor(12,1);
+  lcd.print(player.score);
+  shouldRedrawScore = false;
 }
 
 void checkEndConditions() {
@@ -430,10 +475,13 @@ void checkEndConditions() {
   }
 }
 
+
 void gameLoop() {
   
   switch (gameState) {
     case SYSTEM_STATE_GAME_SETUP:
+      elapsedTime = 0;
+      
       startTime = millis();
       lcd.clear();
       gameSetup();
@@ -445,6 +493,7 @@ void gameLoop() {
       
     case SYSTEM_STATE_GAME_LOOP:
       updateTime();
+      updateScore();
       updatePlayer();
       updateBombRadar();
       updateKeys();

@@ -6,7 +6,7 @@
 LedControl matrix = LedControl(MATRIX_DIN_PIN, MATRIX_CLOCK_PIN, MATRIX_LOAD_PIN, 1);
 
 /***** SYSTEM *****/
-volatile int systemState = SYSTEM_STATE_MENU;
+volatile int systemState = SYSTEM_STATE_SPLASH;
 
 /***** JOYSTICK *****/
 int joystickX = 0;
@@ -111,6 +111,7 @@ byte sadMatrixSymbol[8] = {
   B10000001,
   B11111111,  
 };
+
 /**
  * Handles hardware joystick input and turns it into easier-to-use values.
  * 

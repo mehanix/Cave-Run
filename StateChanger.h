@@ -1,12 +1,12 @@
 
 void joystickButtonClick() {
 
-  volatile int currentTime = millis();
-  if (currentTime - lastDebounceTime < debounceDelay) { 
+  volatile int curTime = millis();
+  if (curTime - lastDebounceTime < debounceDelay) { 
     return;
   }
 
-  lastDebounceTime = currentTime;
+  lastDebounceTime = curTime;
   shouldRedrawMenu = true;
 
   switch (systemState) {
@@ -40,6 +40,12 @@ void joystickButtonClick() {
     case SYSTEM_STATE_MENU_SETTINGS:
       doSettingsAction();
       return;
+
+    
+    case SYSTEM_STATE_GAME_END:
+     gameState = SYSTEM_STATE_GAME_SETUP;
+     systemState = SYSTEM_STATE_MENU;
+     return;
     
   }
 }

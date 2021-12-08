@@ -30,9 +30,17 @@ void loop() {
   computeJoystickValues();
 
   switch (systemState) {
-    case SYSTEM_STATE_GAME:
-      gameLoop();
+
+    case SYSTEM_STATE_SPLASH:
+      setMatrixImage(happyMatrixSymbol);
+      lcd.clear();
+      lcd.setCursor(4,0);
+      lcd.print("Welcome!");
+      delay(2000);
+      systemState = SYSTEM_STATE_MENU;
+      shouldRedrawMenu = true;
       break;
+
     case SYSTEM_STATE_MENU:
       menuLoop();
       break;
@@ -48,5 +56,14 @@ void loop() {
     case SYSTEM_STATE_MENU_SETTINGS:
       settingsLoop();
       break;
+
+    case SYSTEM_STATE_NAME_EDIT:
+      editNameLoop();
+      break;
+      
+    case SYSTEM_STATE_GAME:
+      gameLoop();
+      break;
+      
   }
 }

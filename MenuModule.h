@@ -12,6 +12,7 @@ volatile bool shouldRedrawMenu = false;
 String settingsItems[] = {"Name:", "Difficulty:", "Contrast:", "Brightness:", "Matr. Light:", "Back to Menu"};
 const int settingsItemsCount = 6;
 volatile bool isEditingSetting = false;
+volatile int nameEditState = SYSTEM_STATE_NAME_EDIT_UNLOCKED;
 
 // i chose to hold the brighness settings in a short array as they're all numbers (except the name) in order to write more generic control functions
 // consult the settings define section for the corresponding indices 
@@ -59,6 +60,23 @@ void saveSettings() {
   EEPROM.put(100, systemSettings);
 }
 
+void saveScore() {
+  bool shouldUpdateEEPROM = false;
+  for(int i = 0; i < 3; i++) {
+    if (currentPlayer.score > scores[i].score) {
+      strcpy(currentPlayer.name, scores[i].name);
+      scores[i].score = currentPlayer.score;
+      shouldUpdateEEPROM = true;
+      break;
+    }
+  }
+
+  if (shouldUpdateEEPROM) {
+    EEPROM.put(0, scores);
+  }
+  
+}
+
 // change system state depending on selected setting to edit
 void doSettingsAction() {
 
@@ -76,7 +94,7 @@ void doSettingsAction() {
       return;
 
     case 0:
-      // name edit fun
+      systemState = SYSTEM_STATE_NAME_EDIT;
       break;
       return;
       
@@ -155,6 +173,17 @@ void menuLoop() {
     if (shouldRedrawMenu) {
       drawMenu(menuTitles[1] , true, menuItems[selectedItem], menuItemsCount);
     }
+}
+
+void nameEditSetup() {
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(currentPlayer.name);
+  lcd.setCursor(11,0);
+  lcd.print("Save");
+}
+void nameEditLoop() {
+  
 }
 
 void aboutLoop() {
