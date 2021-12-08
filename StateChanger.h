@@ -9,7 +9,7 @@ void joystickButtonClick() {
   lastDebounceTime = currentTime;
   shouldRedrawMenu = true;
 
-  switch (systemState){
+  switch (systemState) {
     case SYSTEM_STATE_MENU:
       switch (selectedItem) {
         case 0:

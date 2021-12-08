@@ -3,7 +3,7 @@
 struct Coordinate {
   short x, y;
     
-  bool operator==(const Coordinate& a) const
+  bool operator == (const Coordinate& a) const
   {
       return (x == a.x && y == a.y);
   }
@@ -18,10 +18,19 @@ bool gameMap[MAP_SIZE][MAP_SIZE];
 Coordinate displayedRegion = {0, 0};
 bool shouldRedrawMap = true;
 bool shouldRedrawLcd = true;
+bool bombWentOff = false;
+
+bool ledExplosionState = 0;
+
+long long lastExplosionTime = 0;
+long long lastLedChangeTime = 0;
+
 byte currentLevel = 0;
 byte gameState = SYSTEM_STATE_GAME_SETUP;
 
 short startTime = 0;
+short elapsedTime = 0;
+byte lcdTime = 0;
 
 struct Player {
   Coordinate pos = {1, 1};
@@ -29,16 +38,19 @@ struct Player {
   byte lives = 3;
   long long lastMoveTime = 0;
   bool shouldRedraw = true;
+  byte keysLeft;
+  short score = 0;
 } player;
 
 struct RoomData {
     Coordinate pos; //upper right corner
     short size;
-    short keyCount = 0;
-    short bombCount = 0;
+    short keyCount = 3;
+    short bombCount = 1;
     Coordinate keys[MAX_KEY_COUNT];
     Coordinate bombs[MAX_BOMB_COUNT];
-    Coordinate exitPosition;
+    Coordinate doorPos;
+    bool isDoorOpen = false;
 } level;
 
 
@@ -55,18 +67,55 @@ Coordinate getObjectRegion(Coordinate obj) {
   return {obj.x / MATRIX_SIZE, obj.y / MATRIX_SIZE }; 
 }
 
+
+void drawLcdPlayerStats() {
+  // lives
+  lcd.setCursor(6,0);
+  lcd.print("   ");
+  lcd.setCursor(6,0);
+  for (int i = 0; i < player.lives; i++) {
+    lcd.write(byte(5));
+  }
+  
+  // keys left
+  lcd.setCursor(15,0);
+  lcd.print(player.keysLeft);
+
+  if (player.keysLeft == 0) {
+      lcd.setCursor(7,1);
+      lcd.print("Door Open!");
+  }
+  
+  
+}
+
 void drawLcdText() {
 
   lcd.setCursor(0,0);
   lcd.print("Lives:");
   
-//  for (int i = 0; i < player.lives; i++) {
-//    lcd.write(byte(5));
-//  }
-
+  lcd.setCursor(10,0);
+  lcd.print("Keys:");
+  
   lcd.setCursor(0,1);
   lcd.print("Time:");
+  lcd.print(GAME_DURATION);
+
+  lcd.setCursor(10,1);
+  lcd.print("left");
+
+  drawLcdPlayerStats();
 }
+
+void drawLcdTime(byte lcdTime) {
+  lcd.setCursor(5, 1);
+  if (lcdTime < 10) {
+    lcd.print("  ");
+    lcd.setCursor(5, 1);
+  }
+  lcd.print(lcdTime);
+}
+
 
 void drawMap() {
 
@@ -90,9 +139,13 @@ void drawMap() {
       matrix.setLed(0, key.x % MATRIX_SIZE, key.y % MATRIX_SIZE, true);
     }
   }
+
+  player.previousPos = player.pos;
   shouldRedrawMap = false;
   
+  
 }
+
 /**
  * Draws room size based on difficulty and currentLevel.
  * How game difficulty increases room size:
@@ -115,6 +168,9 @@ void generateMap(int difficulty) {
       gameMap[roomSize - 1][j] = 1;
   }
 
+  level.doorPos.x = 0;
+  level.doorPos.y = 7;
+
 }
 
 void generateObjects(short difficulty) {
@@ -123,10 +179,32 @@ void generateObjects(short difficulty) {
   level.keys[0] = {2,2};
   level.keys[1] = {5,6};
   level.keys[2] = {10,9};  
+  
   level.bombs[0] = {5,5};
+  level.bombs[1] = {2,7};
+  level.bombs[2] = {8,9};
+
+  player.keysLeft = 3;
 
 }
 
+void updateScoreEvent(byte event) {
+
+//  switch (event) {
+//    case KEY_PICKUP:
+//      player.score += 100 - elapsedTime;
+//      return;
+//    case BOMB_PICKUP:
+//      player.score -= lcdTime;
+//      return;
+//    case DOOR_OPEN:
+//      player.score += 2 * lcdTime;
+//      return;
+//    case DOOR_ENTER:
+//      player.score += 2 * lcdTime;
+//      return;
+//  }
+}
 void generateLevel(short difficulty) {
   // POC, first level. 3 keys, 3 bombs, spawned at fixed positions for now that fit, 8x8 room.
 
@@ -136,7 +214,9 @@ void generateLevel(short difficulty) {
 }
 void gameSetup() {
   reset();
-  generateLevel(2);
+  generateLevel(DIFFICULTY_MEDIUM);
+  lcdTime = 60;
+  player.score = 0;
 }
 
 void drawPlayer() {
@@ -171,6 +251,10 @@ Coordinate computePosition() {
 void updatePlayer() {
   long long currentTime = millis();
 
+  if (bombWentOff) {
+    return; // time penalty for setting bomb off, cannot move.
+  }
+
   if (currentTime - player.lastMoveTime < PLAYER_MOVEMENT_DELAY) {
     return;
   }
@@ -189,6 +273,163 @@ void updatePlayer() {
     shouldRedrawMap = true;
   }
 }
+
+float getDistance(Coordinate a, Coordinate b) {
+
+  return sqrt(pow((a.x-b.x),2) + pow((a.y - b.y), 2));
+}
+
+short getNearestBombDistance() {
+  float shortestDistance = MAP_SIZE*2;
+  
+  for (int i = 0; i < level.bombCount; i++) {
+
+    if (player.pos == level.bombs[i])
+      return 0;
+    
+    float distance = getDistance(player.pos, level.bombs[i]);
+    if (distance < shortestDistance) {
+      shortestDistance = distance;
+    }
+  }
+  return shortestDistance;
+}
+
+void removeBomb() {
+  int index;
+  player.lives -= 1;
+  drawLcdPlayerStats();
+  
+  for (int i = 0; i < level.bombCount; i++) {
+    if (player.pos == level.bombs[i]) {
+      level.bombs[i] = {-100, -100};
+      return;
+    }
+  }
+}
+
+
+
+void updateKeys() {
+
+  // check if player is touching key, if he is, count the key
+  int index;
+  for (int i = 0; i < level.keyCount; i++) {
+    if (player.pos == level.keys[i]) {
+      level.keys[i] = {-1, -1};
+      player.keysLeft -= 1;
+      
+      updateScoreEvent(KEY_PICKUP);
+      drawLcdPlayerStats();
+      return;
+    }
+  } 
+}
+
+void updateDoor() {
+  if (player.keysLeft == 0 && gameMap[level.doorPos.x][level.doorPos.y]) {
+      gameMap[level.doorPos.x][level.doorPos.y] = 0;
+      
+      drawLcdPlayerStats();
+      shouldRedrawMap = true;
+      updateScoreEvent(DOOR_OPEN);
+    }
+}
+
+void updateBombRadar() {
+
+  if (bombWentOff) {
+
+    long long currentTime = millis();
+    if (currentTime - lastExplosionTime > BOMB_EXPLOSION_INTERVAL) {
+      bombWentOff = false;
+      return;
+    }
+
+    if (currentTime - lastLedChangeTime > LED_FLASHING_INTERVAL) {
+      ledExplosionState = !ledExplosionState;
+      Serial.println(ledExplosionState);
+      lastLedChangeTime = currentTime;
+    }
+    digitalWrite(WARNING_LED_PIN, ledExplosionState);
+    return;
+  }
+  // get closest bomb and show on the radar a percentage corresponding to how close you are to it
+  float nearestBomb = getNearestBombDistance();
+
+  if (nearestBomb == 0) {
+    
+    bombWentOff = true;
+    lastExplosionTime = millis();
+    updateScoreEvent(BOMB_PICKUP);
+    
+    if (player.lives > 0) {
+      removeBomb();
+    }
+    
+  } else {
+      setWarningLed(max(100 - 32*nearestBomb, 0));
+  }
+}
+
+void endGameDisplay(byte image[], String message) {
+  
+  setMatrixImage(image);
+  lcd.setCursor((15 - message.length())/2, 0);
+  lcd.print(message);
+  lcd.setCursor(0, 1);
+  lcd.print("Your score:");
+}
+
+void endGame(byte reason) {
+  systemState = SYSTEM_STATE_GAME_END;
+  lcd.clear();
+
+  switch (reason) {
+    case GAME_END_TIMEOUT:
+      endGameDisplay(sadMatrixSymbol, "== Time's up!  ==");
+      break;
+
+    case GAME_END_NO_LIVES:
+      endGameDisplay(sadMatrixSymbol, "==  You died!  ==");
+      break;
+
+    case GAME_END_EXIT:
+      endGameDisplay(happyMatrixSymbol, "== Congrats! ==");
+      break;    
+  }
+
+}
+
+
+void updateTime() {
+  elapsedTime = (millis() - startTime)/1000;
+  Serial.println(elapsedTime);
+  short timeLeft = GAME_DURATION - elapsedTime;
+  if (lcdTime != timeLeft) {
+    lcdTime = timeLeft;
+    drawLcdTime(lcdTime);
+  }
+
+}
+
+void checkEndConditions() {
+  if (elapsedTime == GAME_DURATION) {
+    endGame(GAME_END_TIMEOUT);
+    return;
+  }
+
+  if (player.lives == 0) {
+    endGame(GAME_END_NO_LIVES);
+  }
+  
+  if (player.pos == level.doorPos) {
+    updateScoreEvent(DOOR_ENTER);
+    endGame(GAME_END_EXIT); // POC only; we'd switch to the next level here normally
+    return;
+  }
+}
+
 void gameLoop() {
   
   switch (gameState) {
@@ -203,9 +444,16 @@ void gameLoop() {
       break;
       
     case SYSTEM_STATE_GAME_LOOP:
+      updateTime();
       updatePlayer();
+      updateBombRadar();
+      updateKeys();
+      updateDoor();
+      
       drawMap();
       drawPlayer();
+
+      checkEndConditions();
       break;
   }
 }

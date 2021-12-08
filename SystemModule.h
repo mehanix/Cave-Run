@@ -90,6 +90,27 @@ byte heartSymbol[8] = {
   B00000,
 };
 
+byte happyMatrixSymbol[8] = {
+  B11111111,
+  B10000001,
+  B10100101,
+  B10000001,
+  B10100101,
+  B10111101,
+  B10000001,
+  B11111111,  
+};
+
+byte sadMatrixSymbol[8] = {
+  B11111111,
+  B10000001,
+  B10100101,
+  B10000001,
+  B10111101,
+  B10100101,
+  B10000001,
+  B11111111,  
+};
 /**
  * Handles hardware joystick input and turns it into easier-to-use values.
  * 
@@ -121,4 +142,15 @@ void computeJoystickValues() {
     } else {
       joystickX = AXIS_NEGATIVE;
     } 
+}
+
+void setWarningLed(short value) {
+  analogWrite(WARNING_LED_PIN, value);
+}
+
+void setMatrixImage(byte image[]) {
+  
+  for (int i = 0; i < MATRIX_SIZE; i++) {
+    matrix.setRow(0, i, image[i]);
+  }
 }

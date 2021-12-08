@@ -26,7 +26,7 @@ struct Settings {
 struct PlayerScore {
   short score;
   char name[6];
-};
+} currentPlayer;
 
 PlayerScore scores[3];
 

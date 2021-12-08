@@ -33,6 +33,8 @@
 #define AXIS_NEGATIVE -1
 
 #define WARNING_LED_PIN 5
+#define BOMB_EXPLOSION_INTERVAL 1500
+#define LED_FLASHING_INTERVAL 200
 
 /******** END HARDWARE *********/
 
@@ -94,7 +96,15 @@
 #define WALL 1
 #define FLOOR 0
 
-#define GAME_DURATION_MS 60000
-// game states
+#define GAME_DURATION 60
+
+#define GAME_END_TIMEOUT 0
+#define GAME_END_NO_LIVES 1
+#define GAME_END_EXIT 2
+
+#define KEY_PICKUP 0
+#define BOMB_PICKUP 1
+#define DOOR_OPEN 2
+#define DOOR_ENTER 3
 
 /**************** END_GAME **************/
