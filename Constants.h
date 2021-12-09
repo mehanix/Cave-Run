@@ -9,12 +9,13 @@
 #define LCD_D6 9
 #define LCD_D7 13
 #define LCD_V0 3
+#define LCD_BACKLIGHT 10
           
 /***** MATRIX *****/
 
 #define MATRIX_DIN_PIN 12
 #define MATRIX_CLOCK_PIN 11
-#define MATRIX_LOAD_PIN 10
+#define MATRIX_LOAD_PIN A2
 
 #define MATRIX_SIZE 8
 #define MATRIX_BRIGHTNESS 2
@@ -25,8 +26,8 @@
 #define JOYSTICK_Y A1
 #define JOYSTICK_BTN 2
 
-#define JOYSTICK_MIN_TRESHOLD 200
-#define JOYSTICK_MAX_TRESHOLD 800
+#define JOYSTICK_MIN_TRESHOLD 400
+#define JOYSTICK_MAX_TRESHOLD 600
 
 #define AXIS_IDLE 0
 #define AXIS_POSITIVE 1

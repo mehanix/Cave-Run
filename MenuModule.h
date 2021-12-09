@@ -12,7 +12,11 @@ volatile bool shouldRedrawMenu = false;
 String settingsItems[] = {"Name:", "Difficulty:", "Contrast:", "Brightness:", "Matr. Light:", "Back to Menu"};
 const int settingsItemsCount = 6;
 volatile bool isEditingSetting = false;
-volatile int nameEditState = SYSTEM_STATE_NAME_EDIT_UNLOCKED;
+volatile bool nameEditSetup = true;
+
+byte index = 0;
+volatile int nameEditState = SYSTEM_STATE_NAME_EDIT_LOCKED;
+bool shouldRedrawNameEdit = true;
 
 // i chose to hold the brighness settings in a short array as they're all numbers (except the name) in order to write more generic control functions
 // consult the settings define section for the corresponding indices 
@@ -21,6 +25,8 @@ struct Settings {
   short difficulty;
   short brightnessArray[3];
 } systemSettings;
+
+
 
 // high score menu
 
@@ -36,7 +42,7 @@ String aboutText[] = {"My Github:", "git.io/JMQEj"};
 
 /**
  * Interprets user joystick input in the way needed for the menu.
- * Only read off Y axis, and disable scrolling-through-items by holding the joystick.
+ * Only read off one axis, and disable scrolling-through-items by holding the joystick.
  */
 short getMenuUserInput(int axis) {
 
@@ -64,7 +70,7 @@ void saveScore() {
   bool shouldUpdateEEPROM = false;
   for(int i = 0; i < 3; i++) {
     if (currentPlayer.score > scores[i].score) {
-      strcpy(currentPlayer.name, scores[i].name);
+      strcpy(scores[i].name, systemSettings.name);
       scores[i].score = currentPlayer.score;
       shouldUpdateEEPROM = true;
       break;
@@ -82,7 +88,6 @@ void doSettingsAction() {
 
   if (isEditingSetting) {
     isEditingSetting = false;
-    Serial.println("pa");
     saveSettings();
     return;
   }
@@ -94,13 +99,19 @@ void doSettingsAction() {
       return;
 
     case 0:
+    
       systemState = SYSTEM_STATE_NAME_EDIT;
-      break;
+      if (nameEditState == SYSTEM_STATE_NAME_EDIT_UNLOCKED) {
+        nameEditState = SYSTEM_STATE_NAME_EDIT_LOCKED;
+      } else {
+        nameEditState = SYSTEM_STATE_NAME_EDIT_UNLOCKED;
+     
+      }
+      shouldRedrawNameEdit = true;
       return;
       
     default:
       isEditingSetting = true;
-      Serial.println("why2");
       return;
   }
 }
@@ -163,26 +174,78 @@ void drawMenu(String title, bool showCaret, String option, short optionsCount, b
   * Redraw on LCD only on user action.
   */
 void menuLoop() {
-  
-    short userInput = getMenuUserInput(joystickY);
 
-    if (userInput) {
-      updateLcdMenu(userInput, menuItemsCount);
-    }
+  short userInput = getMenuUserInput(joystickY);
 
-    if (shouldRedrawMenu) {
-      drawMenu(menuTitles[1] , true, menuItems[selectedItem], menuItemsCount);
-    }
+  if (userInput) {
+    updateLcdMenu(userInput, menuItemsCount);
+  }
+
+  if (shouldRedrawMenu) {
+    drawMenu(menuTitles[1] , true, menuItems[selectedItem], menuItemsCount);
+  }
 }
 
-void nameEditSetup() {
+
+void changeSelection(short input) {
+  Serial.println("hi");
+  if (input == AXIS_POSITIVE && index < 5) {
+    index += 1;
+  }
+
+  if (input == AXIS_NEGATIVE && index > 0) {
+    index -= 1;
+  }
+  shouldRedrawNameEdit = true;
+}
+
+void scrollThroughLetter(short input) {
+    if (input == AXIS_POSITIVE && systemSettings.name[index] < 'Z') {
+    systemSettings.name[index] += 1;
+  }
+
+  if (input == AXIS_NEGATIVE && systemSettings.name[index] > 'A') {
+    systemSettings.name[index] -= 1;
+  }
+
+  shouldRedrawNameEdit = true;
+}
+
+void drawNameEdit() {
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print(currentPlayer.name);
+  lcd.print(systemSettings.name);
   lcd.setCursor(11,0);
   lcd.print("Save");
+  if (index == 5) {
+    lcd.setCursor(12, 1);
+  } else {
+    lcd.setCursor(index, 1);
+  }
+  lcd.print("^");
+  
+  shouldRedrawNameEdit = false;
 }
+
 void nameEditLoop() {
+
+  short userInput = getMenuUserInput(joystickX);
+
+  if (userInput) {
+    if (nameEditState == SYSTEM_STATE_NAME_EDIT_UNLOCKED) {
+      changeSelection(userInput);
+    } else {
+      scrollThroughLetter(userInput);
+
+    }
+    
+  }
+
+  if (shouldRedrawNameEdit) {
+    drawNameEdit();
+  }
+
+  
   
 }
 
@@ -256,7 +319,9 @@ String getSettingText(short item) {
 void applySettings() {
   
     analogWrite(LCD_V0, systemSettings.brightnessArray[0] * SETTINGS_ADJUSTMENT_INCREMENT);
-    //todo others
+    analogWrite(LCD_BACKLIGHT, systemSettings.brightnessArray[1] * SETTINGS_ADJUSTMENT_INCREMENT);
+    matrix.setIntensity(0, systemSettings.brightnessArray[2]);
+
 }
 
 

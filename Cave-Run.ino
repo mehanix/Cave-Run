@@ -57,9 +57,9 @@ void loop() {
       settingsLoop();
       break;
 
-    case SYSTEM_STATE_NAME_EDIT:
-      editNameLoop();
-      break;
+//    case SYSTEM_STATE_NAME_EDIT:
+//      nameEditLoop();
+//      break;
       
     case SYSTEM_STATE_GAME:
       gameLoop();

@@ -9,6 +9,9 @@ void joystickSetup() {
 }
 
 void memorySetup() {
+//  strcpy(scores[0].name, "AAAAA");
+//  strcpy(scores[1].name, "AAAAA");
+//  strcpy(scores[2].name, "AAAAA");
   EEPROM.get(0, scores);
   EEPROM.get(100, systemSettings);
 }
@@ -35,6 +38,6 @@ void lcdSetup() {
 void matrixSetup() {
   
   matrix.shutdown(0, false);
-  matrix.setIntensity(0,2);
+  matrix.setIntensity(0, 2);
   matrix.clearDisplay(0);
 }

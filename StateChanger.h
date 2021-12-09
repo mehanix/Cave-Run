@@ -41,7 +41,20 @@ void joystickButtonClick() {
       doSettingsAction();
       return;
 
-    
+    case SYSTEM_STATE_NAME_EDIT:
+      if (index == 5) {
+        saveSettings();
+        index = 0;
+        systemState = SYSTEM_STATE_MENU_SETTINGS;
+      }
+      if (nameEditState == SYSTEM_STATE_NAME_EDIT_UNLOCKED) {
+          nameEditState = SYSTEM_STATE_NAME_EDIT_LOCKED;
+      } else {
+          nameEditState = SYSTEM_STATE_NAME_EDIT_UNLOCKED;
+        }
+        shouldRedrawNameEdit = true;
+        return;
+        
     case SYSTEM_STATE_GAME_END:
      gameState = SYSTEM_STATE_GAME_SETUP;
      systemState = SYSTEM_STATE_MENU;
