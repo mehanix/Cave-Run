@@ -17,7 +17,6 @@ bool gameMap[MAP_SIZE][MAP_SIZE];
  */
 Coordinate displayedRegion = {0, 0};
 bool shouldRedrawMap = true;
-bool shouldRedrawLcd = true;
 bool shouldRedrawScore = true;
 bool bombWentOff = false;
 
@@ -28,6 +27,7 @@ long long lastLedChangeTime;
 
 byte currentLevel = 0;
 byte gameState = SYSTEM_STATE_GAME_SETUP;
+byte difficulty;
 
 long long startTime = 0;
 long long elapsedTime = 0;
@@ -44,7 +44,6 @@ struct Player {
 } player;
 
 struct RoomData {
-    Coordinate pos; //upper right corner
     short size;
     short keyCount = 3;
     short bombCount = 1;
@@ -54,17 +53,58 @@ struct RoomData {
     bool isDoorOpen = false;
 } level;
 
+const byte difficultyItemCountRanges[4][2] = {
+  {0,0},
+  {3,5},
+  {4,7},
+  {5,8}
+};
+const byte configRoomCountsTilChange[][2] = {{0,0}, {3,3}, {2,2}, {1,1}};
+byte roomCountsTilChange[4][2];
+byte roomTypeIndex = 0;
 
+/**
+ * Resets the object which holds the level that is being played - preparing for level generation
+ */
+ void resetLevel() {
 
-void reset() {
+  // gameMap reset
   for (int i = 0; i < MAP_SIZE; i++) {
     for (int j = 0; j < MAP_SIZE; j++) {
       gameMap[i][j] = 0;
     }
   }
+  
+  // level reset
+  
+  level.size = 0;
+  level.keyCount = 0;
+  level.bombCount = 0;
+  for (auto &key: level.keys) {
+    key = {};  
+  }
 
+  for (auto &bomb: level.bombs) {
+    bomb = {};  
+  }
+  level.doorPos = {0,0};
+  level.isDoorOpen = false;
+
+  // player-related resets
+  
   player.pos = {1, 1};
   player.previousPos = {1, 1};
+  
+ }
+
+
+/**
+ * Resets the global variabiles specific to the game state.
+ */
+void resetGame() {
+
+  resetLevel();
+
   player.lives = 3;
   player.lastMoveTime = 0;
   player.shouldRedraw = true;
@@ -72,10 +112,10 @@ void reset() {
   player.score = 0;
 
   level.isDoorOpen = false;
+  difficulty = systemSettings.difficulty;
 
   displayedRegion = {0, 0};
   shouldRedrawMap = true;
-  shouldRedrawLcd = true;
   shouldRedrawScore = true;
   bombWentOff = false;
   
@@ -84,7 +124,12 @@ void reset() {
   lastExplosionTime = 0;
   lastLedChangeTime = 0;
 
-    
+  roomTypeIndex = 0;
+  for (int i = 0; i < sizeof(configRoomCountsTilChange)/sizeof(Coordinate); i++) {
+    roomCountsTilChange[i][0] = configRoomCountsTilChange[i][0];
+    roomCountsTilChange[i][1] = configRoomCountsTilChange[i][1];
+
+  }
   currentLevel = 0;
   gameState = SYSTEM_STATE_GAME_SETUP;
   
@@ -98,6 +143,9 @@ Coordinate getObjectRegion(Coordinate obj) {
 
 
 void drawLcdPlayerStats() {
+  // level
+  lcd.setCursor(4,0);
+  lcd.print(currentLevel);
   // lives
   lcd.setCursor(6,0);
   lcd.print("   ");
@@ -121,7 +169,7 @@ void drawLcdPlayerStats() {
 void drawLcdText() {
 
   lcd.setCursor(0,0);
-  lcd.print("Lives:");
+  lcd.print("Lvl:");
   
   lcd.setCursor(10,0);
   lcd.print("Keys:");
@@ -175,48 +223,6 @@ void drawMap() {
   
 }
 
-/**
- * Draws room size based on difficulty and currentLevel.
- * How game difficulty increases room size:
- *  - Easy: 2 small rooms, 2 medium rooms, then large rooms until time runs out 
- *  - Medium: 1 small room, 2 medium rooms, then large rooms until time runs out
- *  - Hard: 2 medium rooms then large til time runs out
- */
-void generateMap(int difficulty) {
-  
-  byte roomSize = (difficulty + 1) * 4;
-
-  for(int i = 0; i < roomSize; i++) {
-     gameMap[i][0] = 1;
-     gameMap[i][roomSize - 1] = 1;
-
-  }
-
-  for(int j = 0; j < roomSize; j++) {
-      gameMap[0][j] = 1;
-      gameMap[roomSize - 1][j] = 1;
-  }
-
-  level.doorPos.x = 0;
-  level.doorPos.y = 7;
-
-}
-
-void generateObjects(short difficulty) {
-  level.keyCount = 3;
-  level.bombCount = 3;
-  level.keys[0] = {2,2};
-  level.keys[1] = {5,6};
-  level.keys[2] = {10,9};  
-  
-  level.bombs[0] = {5,5};
-  level.bombs[1] = {2,7};
-  level.bombs[2] = {8,9};
-
-  player.keysLeft = 3;
-
-}
-
 void updateScoreEvent(byte event) {
 
   switch (event) {
@@ -235,17 +241,169 @@ void updateScoreEvent(byte event) {
   }
   shouldRedrawScore = true;
 }
-void generateLevel(short difficulty) {
-  // POC, first level. 3 keys, 3 bombs, spawned at fixed positions for now that fit, 8x8 room.
 
-  generateMap(difficulty);
-  generateObjects(difficulty);
+
+/**
+ * Draws room size based on difficulty and currentLevel.
+ * How game difficulty increases room size:
+ *  - Easy: 3 small rooms, 3 medium rooms, then large rooms until time runs out 
+ *  - Medium: 2 small room, 2 medium rooms, then large rooms until time runs out
+ *  - Hard: 1 of each then large til time runs out
+ */
+void generateMap(byte roomSize) {
+  
+  for(int i = 0; i < roomSize; i++) {
+     gameMap[i][0] = 1;
+     gameMap[i][roomSize - 1] = 1;
+
+  }
+
+  for(int j = 0; j < roomSize; j++) {
+      gameMap[0][j] = 1;
+      gameMap[roomSize - 1][j] = 1;
+  }
+
+  level.doorPos.x = 0;
+  level.doorPos.y = 5;
+
+}
+
+bool checkIfColliding(Coordinate point) {
+
+  Coordinate playerPos {1, 1};
+  // player start
+  if (point == playerPos) {
+    return false;
+  }
+
+  // other objects
+  // keys
+  for (int i = 0; i < level.keyCount; i++) {
+    if (point == level.keys[i]) {
+      return false;
+    }
+  }
+
+  // bombs
+  for (int i = 0; i < level.bombCount; i++) {
+    if (point == level.bombs[i]) {
+      return false;
+    }
+  }
+
+  // todo door
+  // walls are already accounted for
+
+  return true;
+}
+
+
+/**
+ * Function which returns a valid coordinate for an object.
+ * Valid coordinates are those which:
+ *  - do not overlap the player
+ *  - do not overlap the walls
+ *  - are not placed in front of the exit
+ *  - do not overlap other objects
+ */
+Coordinate generateNonCollidingPoint() {
+  bool valid = false;
+  Coordinate point;
+
+  while (!valid) {
+    point = {random(1, level.size - 1), random(1, level.size - 1)};
+    valid = checkIfColliding(point); 
+  }
+
+  return point;
+}
+
+void generateObjects() {
+  
+  player.keysLeft = level.keyCount;
+
+  Serial.println(level.keyCount);
+
+  for (int i = 0; i < level.keyCount; i++) {
+    level.keys[i] = generateNonCollidingPoint();
+    Serial.print(level.keys[i].x);
+    Serial.print(" ");
+    Serial.println(level.keys[i].y);
+  }
+
+  for (int i = 0; i < level.bombCount; i++) {
+    level.bombs[i] = generateNonCollidingPoint();
+  }
+
+}
+
+byte getRoomSizeModifier() {
+  return 3 - level.size / 4;
+}
+
+/**
+ * Depending on the current level and selected difficulty, generate a room of a certain size and certain item counts.
+ */
+void generateLevelParams() {
+
+  // room size => a difficulty has a number of small/mid sized rooms, followed by large rooms
+  // if i already generated enough types of this room, go to the next type of room
+  if (roomCountsTilChange[difficulty][roomTypeIndex] == 0) {
+      roomTypeIndex += 1;
+  }
+  // mark the room as generated
+  roomCountsTilChange[difficulty][roomTypeIndex] -= 1;
+
+  switch (roomTypeIndex) {
+    case (0):
+      level.size = ROOM_SIZE_SMALL;
+      break;
+    case (1):
+      level.size = ROOM_SIZE_MEDIUM;
+      break;
+    default:
+      level.size = ROOM_SIZE_LARGE;
+      break;
+  }
+
+  // make key count also scale with room size
+  byte roomSizeModifier = getRoomSizeModifier();
+
+  level.keyCount = random(difficultyItemCountRanges[difficulty][0] - roomSizeModifier, difficultyItemCountRanges[difficulty][1] - roomSizeModifier);
+  level.bombCount = random(difficultyItemCountRanges[difficulty][0] - roomSizeModifier, difficultyItemCountRanges[difficulty][1] - roomSizeModifier);
+
+//  Serial.println(level.size);
+//  Serial.println(int(difficulty));
+//  
+  Serial.println("ranges:");
+  Serial.println(difficultyItemCountRanges[difficulty][0] - roomSizeModifier);
+  Serial.println(difficultyItemCountRanges[difficulty][1] - roomSizeModifier);
+
+  
+}
+
+
+void generateLevel() {
+
+  generateLevelParams();
+  generateMap(level.size);
+  generateObjects();
+  shouldRedrawMap = true;
+  shouldRedrawScore = true;
   
 }
 void gameSetup() {
-  reset();
-  generateLevel(DIFFICULTY_MEDIUM);
+  resetGame();
+  generateLevel();
   lcdTime = 60;
+}
+
+void nextLevel() {
+  resetLevel();
+  currentLevel += 1;
+  generateLevel();
+  player.shouldRedraw = true;
+  drawLcdPlayerStats();
 }
 
 void drawPlayer() {
@@ -378,7 +536,6 @@ void updateBombRadar() {
 
     if (currentTime - lastLedChangeTime > LED_FLASHING_INTERVAL) {
       ledExplosionState = !ledExplosionState;
-      Serial.println(ledExplosionState);
       lastLedChangeTime = currentTime;
     }
     digitalWrite(WARNING_LED_PIN, ledExplosionState);
@@ -398,7 +555,7 @@ void updateBombRadar() {
     }
     
   } else {
-      setWarningLed(max(100 - 32*nearestBomb, 0));
+      setWarningLed(max(240 - 60*nearestBomb, 0));
   }
 }
 
@@ -440,7 +597,6 @@ void updateTime() {
   
   elapsedTime = (millis() - startTime)/1000;
   short timeLeft = GAME_DURATION - elapsedTime;
-  Serial.println(int(elapsedTime));
   if (lcdTime != timeLeft) {
     lcdTime = timeLeft;
     drawLcdTime(lcdTime);
@@ -470,7 +626,7 @@ void checkEndConditions() {
   
   if (player.pos == level.doorPos) {
     updateScoreEvent(DOOR_ENTER);
-    endGame(GAME_END_EXIT); // POC only; we'd switch to the next level here normally
+    nextLevel(); // POC only; we'd switch to the next level here normally
     return;
   }
 }

@@ -23,6 +23,7 @@ void setup() {
   lcdSetup();
   matrixSetup();
   Serial.begin(9600);
+  randomSeed(analogRead(A4));
 }
 
 void loop() {
@@ -57,9 +58,9 @@ void loop() {
       settingsLoop();
       break;
 
-//    case SYSTEM_STATE_NAME_EDIT:
-//      nameEditLoop();
-//      break;
+    case SYSTEM_STATE_NAME_EDIT:
+      nameEditLoop();
+      break;
       
     case SYSTEM_STATE_GAME:
       gameLoop();

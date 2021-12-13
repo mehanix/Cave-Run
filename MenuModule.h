@@ -269,7 +269,7 @@ String getScoreText(short selectedItem) {
   str.concat(String(scores[selectedItem].name));
   str.concat(" ");
   str.concat(String(scores[selectedItem].score));
-  Serial.println(str);
+//  Serial.println(str);
   return str;
 }
 
@@ -292,8 +292,8 @@ String getSettingText(short item) {
 
   message.concat(settingsItems[item]);
 
-  Serial.println(selectedItem);
-  Serial.println(selectedItem);
+//  Serial.println(selectedItem);
+//  Serial.println(selectedItem);
 
 
   switch (item) {
