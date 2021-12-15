@@ -8,6 +8,7 @@
 #include "GameModule.h"
 #include "StateChanger.h"
 #include "SetupModule.h"
+#include "ThemeSongModule.h"
 
 void setup() {
 
@@ -22,6 +23,7 @@ void setup() {
   memorySetup();
   lcdSetup();
   matrixSetup();
+  buzzerSetup();
   Serial.begin(9600);
   randomSeed(analogRead(A4));
 }
@@ -65,6 +67,12 @@ void loop() {
     case SYSTEM_STATE_GAME:
       gameLoop();
       break;
+
+    case SYSTEM_STATE_GAME_END:
+      gameEndLoop();
+      break;
       
   }
+  themeSongLoop();
+  delay(2);
 }

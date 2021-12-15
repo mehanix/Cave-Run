@@ -8,7 +8,7 @@
 #define LCD_D5 4 
 #define LCD_D6 9
 #define LCD_D7 13
-#define LCD_V0 3
+#define LCD_V0 5
 #define LCD_BACKLIGHT 10
           
 /***** MATRIX *****/
@@ -33,7 +33,9 @@
 #define AXIS_POSITIVE 1
 #define AXIS_NEGATIVE -1
 
-#define WARNING_LED_PIN 5
+#define WARNING_LED_PIN A3
+#define BUZZER_PIN 3
+#define RANDOM_PIN A4
 #define BOMB_EXPLOSION_INTERVAL 1500
 #define LED_FLASHING_INTERVAL 200
 
@@ -83,7 +85,7 @@
 #define ROOM_SIZE_MEDIUM 12
 #define ROOM_SIZE_LARGE 16
 
-#define MAP_SIZE 20
+#define MAP_SIZE 16
 #define MAX_KEY_COUNT 5
 #define MAX_BOMB_COUNT 5
 #define MAX_LEVEL_COUNT 4
@@ -99,6 +101,7 @@
 #define DIRECTION_DOWN 1
 
 #define PLAYER_MOVEMENT_DELAY 150
+#define PLAYER_BLINK_INTERVAL 100
 
 #define WALL 1
 #define FLOOR 0

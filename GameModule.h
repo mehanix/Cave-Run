@@ -33,6 +33,10 @@ long long startTime = 0;
 long long elapsedTime = 0;
 byte lcdTime = 0;
 
+long long powerupStartTime = 0;
+bool isPowerupActive = false;
+bool isPowerupAvailable = true;
+
 struct Player {
   Coordinate pos = {1, 1};
   Coordinate previousPos = {1, 1};
@@ -41,6 +45,8 @@ struct Player {
   bool shouldRedraw = true;
   byte keysLeft;
   short score = 0;
+  bool blinkStatus = true;
+  long long lastBlinkTime = 0;
 } player;
 
 struct RoomData {
@@ -107,10 +113,13 @@ void resetGame() {
 
   player.lives = 3;
   player.lastMoveTime = 0;
+  player.lastBlinkTime = 0;
   player.shouldRedraw = true;
   player.keysLeft;
   player.score = 0;
-
+  
+  isPowerupAvailable = true;
+  
   level.isDoorOpen = false;
   difficulty = systemSettings.difficulty;
 
@@ -143,9 +152,11 @@ Coordinate getObjectRegion(Coordinate obj) {
 
 
 void drawLcdPlayerStats() {
+  
   // level
   lcd.setCursor(4,0);
   lcd.print(currentLevel);
+  
   // lives
   lcd.setCursor(6,0);
   lcd.print("   ");
@@ -154,10 +165,10 @@ void drawLcdPlayerStats() {
     lcd.write(byte(5));
   }
   
-  // keys left
+  // keys left or door. not enough lcd space for both
   lcd.setCursor(15,0);
   lcd.print(player.keysLeft);
-
+ 
   if (player.keysLeft == 0) {
       lcd.setCursor(7,1);
       lcd.print("Door Open!");
@@ -178,8 +189,8 @@ void drawLcdText() {
   lcd.print("Time:");
   lcd.print(GAME_DURATION);
 
-  lcd.setCursor(8,1);
-  lcd.print("Pts:");
+  lcd.setCursor(7,1);
+  lcd.print(" Pts:");
 
   drawLcdPlayerStats();
 }
@@ -223,6 +234,13 @@ void drawMap() {
   
 }
 
+void updatePowerup() {
+  if (!isPowerupActive) {
+    return;
+  }
+
+  
+}
 void updateScoreEvent(byte event) {
 
   switch (event) {
@@ -379,9 +397,7 @@ void generateLevelParams() {
   Serial.println(difficultyItemCountRanges[difficulty][0] - roomSizeModifier);
   Serial.println(difficultyItemCountRanges[difficulty][1] - roomSizeModifier);
 
-  
 }
-
 
 void generateLevel() {
 
@@ -403,7 +419,7 @@ void nextLevel() {
   currentLevel += 1;
   generateLevel();
   player.shouldRedraw = true;
-  drawLcdPlayerStats();
+  drawLcdText();
 }
 
 void drawPlayer() {
@@ -413,7 +429,7 @@ void drawPlayer() {
     
     matrix.setLed(0, player.previousPos.x % 8, player.previousPos.y % 8, false);
     
-    matrix.setLed(0, player.pos.x % 8, player.pos.y % 8, true);
+    matrix.setLed(0, player.pos.x % 8, player.pos.y % 8, player.blinkStatus);
     player.shouldRedraw = false;
   }
 }
@@ -445,6 +461,7 @@ void updatePlayer() {
   if (currentTime - player.lastMoveTime < PLAYER_MOVEMENT_DELAY) {
     return;
   }
+  
   player.lastMoveTime = currentTime;
   player.previousPos = player.pos;
 
@@ -459,6 +476,15 @@ void updatePlayer() {
     displayedRegion = newDisplayRegion;  
     shouldRedrawMap = true;
   }
+
+  if (currentTime - player.lastBlinkTime < PLAYER_BLINK_INTERVAL) {
+    return;
+  }
+
+  player.lastBlinkTime = currentTime;
+  player.blinkStatus = !player.blinkStatus;
+  player.shouldRedraw = true;
+  
 }
 
 float getDistance(Coordinate a, Coordinate b) {
@@ -528,6 +554,7 @@ void updateBombRadar() {
 
   if (bombWentOff) {
 
+    tone(BUZZER_PIN, 500);
     long long currentTime = millis();
     if (currentTime - lastExplosionTime > BOMB_EXPLOSION_INTERVAL) {
       bombWentOff = false;
@@ -544,6 +571,7 @@ void updateBombRadar() {
   // get closest bomb and show on the radar a percentage corresponding to how close you are to it
   float nearestBomb = getNearestBombDistance();
 
+  noTone(BUZZER_PIN);
   if (nearestBomb == 0) {
     
     bombWentOff = true;
@@ -576,16 +604,12 @@ void endGame(byte reason) {
 
   switch (reason) {
     case GAME_END_TIMEOUT:
-      endGameDisplay(sadMatrixSymbol, "== Time's up!  ==");
+      endGameDisplay(happyMatrixSymbol, "== Time's up!  ==");
       break;
 
     case GAME_END_NO_LIVES:
       endGameDisplay(sadMatrixSymbol, "==  You died!  ==");
-      break;
-
-    case GAME_END_EXIT:
-      endGameDisplay(happyMatrixSymbol, "== Congrats! ==");
-      break;    
+      break; 
   }
 
   currentPlayer.score = player.score;
@@ -609,6 +633,8 @@ void updateScore() {
     return;
   }
 
+  lcd.setCursor(12,1);
+  lcd.print("    ");
   lcd.setCursor(12,1);
   lcd.print(player.score);
   shouldRedrawScore = false;
@@ -654,6 +680,7 @@ void gameLoop() {
       updateBombRadar();
       updateKeys();
       updateDoor();
+      updatePowerup();
       
       drawMap();
       drawPlayer();
@@ -661,4 +688,10 @@ void gameLoop() {
       checkEndConditions();
       break;
   }
+}
+
+
+void gameEndLoop() {
+    // bomb radar should continue going off even after game end screen appears
+    updateBombRadar();
 }

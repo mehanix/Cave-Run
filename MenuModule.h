@@ -38,7 +38,7 @@ struct PlayerScore {
 PlayerScore scores[3];
 
 // about menu
-String aboutText[] = {"My Github:", "git.io/JMQEj"};
+String aboutText[] = {"Nicoleta Ciausu", "git.io/JMQEj"};
 
 /**
  * Interprets user joystick input in the way needed for the menu.

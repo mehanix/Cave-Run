@@ -16,6 +16,11 @@ void memorySetup() {
   EEPROM.get(100, systemSettings);
 }
 
+void buzzerSetup() {
+  pinMode(BUZZER_PIN, OUTPUT);
+  noTone(BUZZER_PIN);
+}
+
 void lcdSetup() {
    
   applySettings();

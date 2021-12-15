@@ -54,7 +54,16 @@ void joystickButtonClick() {
         }
         shouldRedrawNameEdit = true;
         return;
-        
+
+    case SYSTEM_STATE_GAME:
+      if (isPowerupAvailable == false) {
+        return;
+      }
+      
+      isPowerupAvailable = false;
+      isPowerupActive = true;
+      powerupStartTime = millis();
+      return;
     case SYSTEM_STATE_GAME_END:
      gameState = SYSTEM_STATE_GAME_SETUP;
      systemState = SYSTEM_STATE_MENU;
