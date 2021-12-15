@@ -292,10 +292,6 @@ String getSettingText(short item) {
 
   message.concat(settingsItems[item]);
 
-//  Serial.println(selectedItem);
-//  Serial.println(selectedItem);
-
-
   switch (item) {
     case 0:
       message.concat(systemSettings.name);
@@ -338,13 +334,15 @@ void updateSetting(short userInput) {
     currentValue = systemSettings.brightnessArray[selectedItem-2];
   }
 
-
+  Serial.print(lowerBound);
+  Serial.print(" ");
+  Serial.println(upperBound);
   if (userInput == AXIS_NEGATIVE && currentValue < upperBound) {
     shouldRedrawMenu = true;
     currentValue += 1;
   }
 
-  if (userInput == AXIS_POSITIVE && currentValue > 0) {
+  if (userInput == AXIS_POSITIVE && currentValue > lowerBound) {
     shouldRedrawMenu = true;
     currentValue -= 1;
   }

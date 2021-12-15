@@ -1,5 +1,3 @@
-#include <assert.h>
-
 struct Coordinate {
   short x, y;
     
@@ -16,6 +14,7 @@ bool gameMap[MAP_SIZE][MAP_SIZE];
  * Represents the top-left corner of the currently viewable area of the map on the LED Matrix.
  */
 Coordinate displayedRegion = {0, 0};
+
 bool shouldRedrawMap = true;
 bool shouldRedrawScore = true;
 bool bombWentOff = false;
@@ -65,7 +64,7 @@ const byte difficultyItemCountRanges[4][2] = {
   {4,7},
   {5,8}
 };
-const byte configRoomCountsTilChange[][2] = {{0,0}, {3,3}, {2,2}, {1,1}};
+const byte configRoomCountsTilChange[4][2] = {{0,0}, {3,3}, {2,2}, {1,1}};
 byte roomCountsTilChange[4][2];
 byte roomTypeIndex = 0;
 
@@ -134,7 +133,7 @@ void resetGame() {
   lastLedChangeTime = 0;
 
   roomTypeIndex = 0;
-  for (int i = 0; i < sizeof(configRoomCountsTilChange)/sizeof(Coordinate); i++) {
+  for (int i = 0; i < 4; i++) {
     roomCountsTilChange[i][0] = configRoomCountsTilChange[i][0];
     roomCountsTilChange[i][1] = configRoomCountsTilChange[i][1];
 
@@ -214,8 +213,8 @@ void drawMap() {
   }
 
   // walls
-  for (int i = 0; i < 8; i++) {
-    for (int j = 0; j < 8; j++) {
+  for (int i = 0; i < MATRIX_SIZE; i++) {
+    for (int j = 0; j < MATRIX_SIZE; j++) {
       matrix.setLed(0, i, j, gameMap[regionX + i][regionY + j]);
     }
   }
@@ -234,13 +233,44 @@ void drawMap() {
   
 }
 
+void drawBombs() {
+
+   // draw remaining bombs on screen. if the bomb went off (its index is < 0) don't draw it
+   for (int i = 0; i < level.bombCount; i++) {
+    Coordinate bomb = level.bombs[i];
+    Coordinate bombRegion = getObjectRegion(bomb);
+    if (bombRegion == displayedRegion && bomb.x >= 0) {
+      matrix.setLed(0, bomb.x % MATRIX_SIZE, bomb.y % MATRIX_SIZE, true);
+    }
+  }
+}
+
+/*
+ * Clear the entire game and show bombs visible on this map section. 
+ * Using delay as i want to freeze the entire game for one second anyway.
+ */
 void updatePowerup() {
   if (!isPowerupActive) {
     return;
   }
+  long long currentTime = millis();
+  matrix.clearDisplay(0);
+
+  drawBombs();
+  delay(PLAYER_POWERUP_DURATION);
+  shouldRedrawMap = true;
+  player.shouldRedraw = true;
+  isPowerupActive = false;
+  
 
   
 }
+/**
+ * Handles scoreable events by adding their respective formula values to the score. Most are time-based.
+ * Penalizes stepping on bombs when the timer has a lot of time (don't rush through the game!)
+ * Rewards opening and entering doors early (u got skill!)
+ * 
+ */
 void updateScoreEvent(byte event) {
 
   switch (event) {
@@ -286,6 +316,9 @@ void generateMap(byte roomSize) {
 
 }
 
+/**
+ * Checks if colliding with any other collectable or area-of-interest (no bomb in front of the door)
+ */
 bool checkIfColliding(Coordinate point) {
 
   Coordinate playerPos {1, 1};
@@ -309,8 +342,10 @@ bool checkIfColliding(Coordinate point) {
     }
   }
 
-  // todo door
-  // walls are already accounted for
+  // door
+  if (point.x == level.doorPos.x + 1 && point.y == level.doorPos.y) {
+    return false;
+  }
 
   return true;
 }
@@ -336,11 +371,12 @@ Coordinate generateNonCollidingPoint() {
   return point;
 }
 
+/**
+ * Handles collectable object generation - both keys and bombs
+ */
 void generateObjects() {
   
   player.keysLeft = level.keyCount;
-
-  Serial.println(level.keyCount);
 
   for (int i = 0; i < level.keyCount; i++) {
     level.keys[i] = generateNonCollidingPoint();
@@ -364,6 +400,12 @@ byte getRoomSizeModifier() {
  */
 void generateLevelParams() {
 
+  Serial.print("aaa");
+  Serial.println( roomCountsTilChange[difficulty][roomTypeIndex]);
+    Serial.print("b");
+  Serial.println( difficulty);
+    Serial.print("c");
+  Serial.println( roomTypeIndex);
   // room size => a difficulty has a number of small/mid sized rooms, followed by large rooms
   // if i already generated enough types of this room, go to the next type of room
   if (roomCountsTilChange[difficulty][roomTypeIndex] == 0) {
@@ -399,6 +441,7 @@ void generateLevelParams() {
 
 }
 
+
 void generateLevel() {
 
   generateLevelParams();
@@ -411,7 +454,7 @@ void generateLevel() {
 void gameSetup() {
   resetGame();
   generateLevel();
-  lcdTime = 60;
+  lcdTime = GAME_DURATION;
 }
 
 void nextLevel() {
@@ -434,6 +477,9 @@ void drawPlayer() {
   }
 }
 
+/**
+ * Collision detection. Don't pass through walls.
+ */
 Coordinate computePosition() {
   Coordinate answer = player.pos;
 
@@ -444,13 +490,17 @@ Coordinate computePosition() {
   answer.y += joystickX;
 
   
-
+  // if about to pass through wall, don't
   if (gameMap[answer.x][answer.y] == WALL) {
     return player.pos;
   }
   return answer;
 }
 
+/**
+ * Player loop. Checks various areas of interest for updates - bombs, position, and makes sure to change the viewable map area if the player is exiting the 
+ * visible space.
+ */
 void updatePlayer() {
   long long currentTime = millis();
 
@@ -467,10 +517,10 @@ void updatePlayer() {
 
   player.pos = computePosition();
 
-  
+  // the map is split into areas of 8x8. its correspondent region id is a Coordinate object that counts how many multiples of 8 you're away from the starting zone
   Coordinate newDisplayRegion = {0,0};
-  newDisplayRegion.x = player.pos.x / 8;
-  newDisplayRegion.y = player.pos.y / 8;
+  newDisplayRegion.x = player.pos.x / MATRIX_SIZE;
+  newDisplayRegion.y = player.pos.y / MATRIX_SIZE;
   
   if (!(newDisplayRegion == displayedRegion)) {
     displayedRegion = newDisplayRegion;  
@@ -487,11 +537,18 @@ void updatePlayer() {
   
 }
 
+/**
+ * Euclidean distance
+ */
 float getDistance(Coordinate a, Coordinate b) {
 
   return sqrt(pow((a.x-b.x),2) + pow((a.y - b.y), 2));
 }
 
+/**
+ * Iterate through all bombs and choose the one which is closest to you in order to update the radar accordingly.
+ * May sound inefficient but it's fine since bomb count is such a small number 
+ */
 short getNearestBombDistance() {
   float shortestDistance = MAP_SIZE*2;
   
@@ -508,6 +565,9 @@ short getNearestBombDistance() {
   return shortestDistance;
 }
 
+/**
+ * Removes by marking to an impossible coordinate. Redraws LCD stats as player lost a life.
+ */
 void removeBomb() {
   int index;
   player.lives -= 1;
@@ -520,7 +580,6 @@ void removeBomb() {
     }
   }
 }
-
 
 
 void updateKeys() {
@@ -539,6 +598,9 @@ void updateKeys() {
   } 
 }
 
+/**
+ * Door behavior loop. If no keys left, open the door.
+ */
 void updateDoor() {
   if (player.keysLeft == 0 && gameMap[level.doorPos.x][level.doorPos.y]) {
       gameMap[level.doorPos.x][level.doorPos.y] = 0;
@@ -549,6 +611,7 @@ void updateDoor() {
       shouldRedrawScore = false;
     }
 }
+
 
 void updateBombRadar() {
 
@@ -604,7 +667,7 @@ void endGame(byte reason) {
 
   switch (reason) {
     case GAME_END_TIMEOUT:
-      endGameDisplay(happyMatrixSymbol, "== Time's up!  ==");
+      endGameDisplay(happyMatrixSymbol, "== Time's up! ==");
       break;
 
     case GAME_END_NO_LIVES:

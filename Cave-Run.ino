@@ -11,13 +11,7 @@
 #include "ThemeSongModule.h"
 
 void setup() {
-
-//  strcpy(systemSettings.name, "AAAAA");
-//  systemSettings.difficulty = 1;
-//  systemSettings.brightnessArray[0] = 6;
-//  systemSettings.brightnessArray[1] = 9;
-//  systemSettings.brightnessArray[2] = 6;
-
+  
   joystickSetup();
   stateChangerSetup();
   memorySetup();
@@ -25,12 +19,13 @@ void setup() {
   matrixSetup();
   buzzerSetup();
   Serial.begin(9600);
-  randomSeed(analogRead(A4));
+  randomSeed(analogRead(RANDOM_PIN));
 }
 
 void loop() {
   
   computeJoystickValues();
+  themeSongLoop();
 
   switch (systemState) {
 
@@ -73,6 +68,5 @@ void loop() {
       break;
       
   }
-  themeSongLoop();
   delay(2);
 }
