@@ -8,13 +8,21 @@ Cave Run is a game where you are supposed to escape a collection of rooms by col
 
 ### Features:
 😎 Complete menu
+
 😎 Procedural generation
+
 😎 Multiple difficulty settings
+
 😎 Multple room sizes
+
 😎 Scoreboard
+
 😎 Customizable settings
+
 😎 Theme song and sound effects!!!! as well as a muting option lol
+
 😎 Power-up: on click, see bombs in room
+
 😎 Endless fun!
 
 
