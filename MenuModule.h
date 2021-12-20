@@ -245,8 +245,6 @@ void nameEditLoop() {
     drawNameEdit();
   }
 
-  
-  
 }
 
 void aboutLoop() {
@@ -354,8 +352,6 @@ void updateSetting(short userInput) {
   }
 
   applySettings();
-
-  
 }
 
 

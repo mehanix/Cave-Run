@@ -64,10 +64,12 @@ void joystickButtonClick() {
       isPowerupActive = true;
       powerupStartTime = millis();
       return;
+      
     case SYSTEM_STATE_GAME_END:
-     gameState = SYSTEM_STATE_GAME_SETUP;
-     systemState = SYSTEM_STATE_MENU;
-     return;
+      setMatrixImage(happyMatrixSymbol);
+      gameState = SYSTEM_STATE_GAME_SETUP;
+      systemState = SYSTEM_STATE_MENU;
+      return;
     
   }
 }

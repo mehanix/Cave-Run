@@ -64,7 +64,7 @@ const byte difficultyItemCountRanges[4][2] = {
   {4,7},
   {5,8}
 };
-const byte configRoomCountsTilChange[4][2] = {{0,0}, {3,3}, {2,2}, {1,1}};
+const byte configRoomCountsTilChange[4][2] = {{0,0}, {3,3}, {1,2}, {0,2}};
 byte roomCountsTilChange[4][2];
 byte roomTypeIndex = 0;
 
