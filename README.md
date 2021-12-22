@@ -3,7 +3,7 @@
 <br/><br/>
 <br/>
 
-<div align=center><img src="./assets/intro.png"></div>
+<div><img src="./assets/intro.png"></div>
   <br/>
 
 This game was created as part of the Introduction to Robotics course I took during my 3rd year of studying Computer Science @ University of Bucharest, Faculty of Mathematics and Computer Science. It is written in C++ and the Arduino libraries, and was created during the span of a month.
@@ -12,7 +12,7 @@ I chose this game because I believed that it would best fit the restrictions of 
 
   I'm not aware of any other game that plays similarly - I'd call it a bit similar to Minesweeper, but that's about it.
   
-<div align=center><img src="./assets/game-description.png"></div>
+<div><img src="./assets/game-description.png"></div>
   <br/>
   
 🔥**Cave Run**🔥 is a game where you must _escape as many rooms as you can_ in 60 seconds ⌚.
@@ -24,7 +24,6 @@ The bombs are buried underground, but thankfully you are equipped with your trus
 _**Don't get blown up! 💥**_
 
 <img src="./assets/features.png" style="width:75%">
-
 
 😎 Complete menu
 
@@ -44,13 +43,13 @@ _**Don't get blown up! 💥**_
 
 🎉 Endless fun!
 
-<div align=center><img src="./assets/how-to-play.png"></div>
+<div><img src="./assets/how-to-play.png"></div>
   <br/>
     <br/>
-  <div align=center ><img src="./assets/instructions.png" style="width:75%"></div>
+  <div ><img src="./assets/instructions.png" style="width:75%"></div>
   <br/>
 
-<div align=center><img src="./assets/components.png"></div>
+<div><img src="./assets/components.png"></div>
   <br/>
   
  💥 1 Arduino Uno
@@ -72,9 +71,9 @@ _**Don't get blown up! 💥**_
  💥 lots and lots of wires
 
 
-<div align=center><img src="./assets/media.png"></div>
+<div><img src="./assets/media.png"></div>
   <br/>
 
-<div align=center><img src="./assets/build.png" style="width:60%"></div>
+<div ><img src="./assets/build.png" style="width:60%"></div>
 
 [Early Demo](https://youtu.be/ydcTGkUH4vE)
