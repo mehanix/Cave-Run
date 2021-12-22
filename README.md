@@ -43,10 +43,10 @@ _**Don't get blown up! 💥**_
 
 🎉 Endless fun!
 
-<div><img src="./assets/how-to-play.png"></div>
+<div ><img src="./assets/how-to-play.png"></div>
   <br/>
     <br/>
-  <div ><img src="./assets/instructions.png" style="width:75%"></div>
+  <div align=center><img src="./assets/instructions.png" style="width:75%"></div>
   <br/>
 
 <div><img src="./assets/components.png"></div>
