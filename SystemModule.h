@@ -1,5 +1,5 @@
 /**
- * System.h - Areas of concern: global system state, interpreting raw data from hardware, saving/loading from memory
+ * SystemModule.h - Areas of concern: global system state, interpreting raw data from hardware, saving/loading from memory
  */
 
 /****** HARDWARE ******/
@@ -90,6 +90,7 @@ byte heartSymbol[8] = {
   B00000,
 };
 
+/***** MATRIX ******/
 byte happyMatrixSymbol[8] = {
   B11111111,
   B10000001,
@@ -110,6 +111,50 @@ byte sadMatrixSymbol[8] = {
   B10100101,
   B10000001,
   B11111111,  
+};
+
+byte menuMatrixSymbol[8] = {
+  B11111111,
+  B11000011,
+  B10111101,
+  B10100101,
+  B10100101,
+  B10111101,
+  B11000011,
+  B11111111  
+};
+
+byte aboutMatrixSymbol[8] = {
+  B00000000,
+  B00100010,
+  B01110111,
+  B01111111,
+  B01111111,
+  B00111110,
+  B00011100,
+  B00001000
+};
+
+byte settingsMatrixSymbol[8] = {
+  B00000000,
+  B00000010,
+  B00000010,
+  B00001010,
+  B00001010,
+  B00101010,
+  B00101010,
+  B10101010
+};
+
+byte highscoreMatrixSymbol[8] = {
+  B01111110,
+  B01111110,
+  B01111110,
+  B01111110,
+  B00111100,
+  B00011000,
+  B00011000,
+  B01111110
 };
 
 /**

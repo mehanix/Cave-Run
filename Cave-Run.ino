@@ -18,7 +18,8 @@ void setup() {
   lcdSetup();
   matrixSetup();
   buzzerSetup();
-  Serial.begin(9600);
+  
+  Serial.begin(BAUD);
   randomSeed(analogRead(RANDOM_PIN));
 }
 
@@ -30,13 +31,7 @@ void loop() {
   switch (systemState) {
 
     case SYSTEM_STATE_SPLASH:
-      setMatrixImage(happyMatrixSymbol);
-      lcd.clear();
-      lcd.setCursor(4,0);
-      lcd.print("Welcome!");
-      delay(2000);
-      systemState = SYSTEM_STATE_MENU;
-      shouldRedrawMenu = true;
+      doSplash();
       break;
 
     case SYSTEM_STATE_MENU:

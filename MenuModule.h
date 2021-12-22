@@ -1,6 +1,5 @@
 // main menu
 int menuDirection = AXIS_IDLE;
-String menuTitles[] = {"Welcome", "Cave Run", "Settings", "Hall of Fame","About"};
 
 String menuItems[] = {"Start Game", "Settings", "Highscores", "About"};
 int menuItemsCount = 4;
@@ -18,15 +17,13 @@ byte index = 0;
 volatile int nameEditState = SYSTEM_STATE_NAME_EDIT_LOCKED;
 bool shouldRedrawNameEdit = true;
 
-// i chose to hold the brighness settings in a short array as they're all numbers (except the name) in order to write more generic control functions
-// consult the settings define section for the corresponding indices 
+// i chose to hold the brightness settings in a short array as they're all numbers (except the name) in order to write more generic control functions
+// consult the settings constants section for the corresponding indices 
 struct Settings {
   char name[6];
   short difficulty;
   short brightnessArray[3];
 } systemSettings;
-
-
 
 // high score menu
 
@@ -63,9 +60,12 @@ short getMenuUserInput(int axis) {
 
 
 void saveSettings() {
-  EEPROM.put(100, systemSettings);
+  EEPROM.put(EEPROM_SETTINGS_MEMORY_LOCATION, systemSettings);
 }
 
+/**
+ * Figures out if the currently acheived score is a high score and if so saves it to the eeprom.
+ */
 void saveScore() {
   bool shouldUpdateEEPROM = false;
   for(int i = 0; i < 3; i++) {
@@ -78,7 +78,7 @@ void saveScore() {
   }
 
   if (shouldUpdateEEPROM) {
-    EEPROM.put(0, scores);
+    EEPROM.put(EEPROM_HIGHSCORES_MEMORY_LOCATION, scores);
   }
   
 }
@@ -95,6 +95,7 @@ void doSettingsAction() {
   switch (selectedItem) {
     case settingsItemsCount - 1:
       selectedItem = 0;
+      setMatrixImage(menuMatrixSymbol);
       systemState = SYSTEM_STATE_MENU;
       return;
 
@@ -131,12 +132,18 @@ void updateLcdMenu(short userInput, short itemCount) {
 }
 
 /**
+ * Does a bit of math which figures out how to center text on a lcd.
+ */
+byte getCenteredTextPosition(String text) {
+  return (LCD_CHARACTER_LENGTH - text.length()) / 2 + 1;
+}
+
+/**
  * Draws the menu according the current system state.
  */
-
 void drawMenu(String title, bool showCaret, String option, short optionsCount, bool isEditingSetting = false) {
   lcd.clear();
-  short titleCursorPos = (15 - title.length()) / 2 + 1;
+  short titleCursorPos = getCenteredTextPosition(title);
   
   lcd.setCursor(titleCursorPos,0);
   lcd.print(title);
@@ -149,22 +156,22 @@ void drawMenu(String title, bool showCaret, String option, short optionsCount, b
 
   if (isEditingSetting) {
 
-    lcd.setCursor(15,1);
-    lcd.write(byte(4));
+    lcd.setCursor(SCROLLBAR_TEXT_POS);
+    lcd.write(byte(ENTER_SYMBOL));
     shouldRedrawMenu = false;
     return;  
   }
 
   short scrollbarCharacter;
   if (selectedItem == 0) {
-      scrollbarCharacter = 0;
+      scrollbarCharacter = DOWN_SYMBOL;
   } else if (selectedItem == optionsCount -1) {
-      scrollbarCharacter = 1;
+      scrollbarCharacter = UP_SYMBOL;
   } else {
-      scrollbarCharacter = 2;
+      scrollbarCharacter = BOTH_SYMBOL;
   }
   
-  lcd.setCursor(15,1);
+  lcd.setCursor(SCROLLBAR_TEXT_POS);
   lcd.write(byte(scrollbarCharacter));
   shouldRedrawMenu = false;  
 }
@@ -182,14 +189,17 @@ void menuLoop() {
   }
 
   if (shouldRedrawMenu) {
-    drawMenu(menuTitles[1] , true, menuItems[selectedItem], menuItemsCount);
+    drawMenu(MENU_TITLE_GAME, true, menuItems[selectedItem], menuItemsCount);
   }
 }
 
-
+/**
+ * Changes selected letter in SYSTEM_STATE_EDIT name
+ */
 void changeSelection(short input) {
-  Serial.println("hi");
-  if (input == AXIS_POSITIVE && index < 5) {
+
+  // keep in bounds, no wrapping back to the beginning of the name
+  if (input == AXIS_POSITIVE && index < NAME_LENGTH) {
     index += 1;
   }
 
@@ -213,16 +223,18 @@ void scrollThroughLetter(short input) {
 
 void drawNameEdit() {
   lcd.clear();
-  lcd.setCursor(0,0);
+  lcd.setCursor(NAME_TEXT_POS);
   lcd.print(systemSettings.name);
-  lcd.setCursor(11,0);
-  lcd.print("Save");
-  if (index == 5) {
-    lcd.setCursor(12, 1);
+  lcd.setCursor(SAVE_TEXT_POS);
+  lcd.print(SAVE_TEXT);
+
+  // show selection: either an editable character or the Save button
+  if (index == NAME_LENGTH) {
+    lcd.setCursor(SAVE_CURSOR_POS);
   } else {
     lcd.setCursor(index, 1);
   }
-  lcd.print("^");
+  lcd.print(SELECTION_CARET);
   
   shouldRedrawNameEdit = false;
 }
@@ -236,9 +248,7 @@ void nameEditLoop() {
       changeSelection(userInput);
     } else {
       scrollThroughLetter(userInput);
-
     }
-    
   }
 
   if (shouldRedrawNameEdit) {
@@ -251,23 +261,23 @@ void aboutLoop() {
 
   if (shouldRedrawMenu) {
     lcd.clear();
-    lcd.setCursor(0,0);
+    lcd.setCursor(ABOUT_NAME_TEXT_POS);
     lcd.print(aboutText[0]);
-    lcd.setCursor(0,1);
+    lcd.setCursor(ABOUT_GITHUB_TEXT_POS);
     lcd.print(aboutText[1]);
-    lcd.setCursor(15,1);
-    lcd.write(byte(3));
+    lcd.setCursor(SCROLLBAR_TEXT_POS);
+    lcd.write(byte(CLICK_SYMBOL));
     shouldRedrawMenu = false;
   }
 }
 
 String getScoreText(short selectedItem) {
-  String str = String(selectedItem+1);
+  String str = String(selectedItem + 1);
   str.concat(" ");
   str.concat(String(scores[selectedItem].name));
   str.concat(" ");
   str.concat(String(scores[selectedItem].score));
-//  Serial.println(str);
+
   return str;
 }
 
@@ -279,11 +289,14 @@ void highscoresLoop() {
   }
 
   if (shouldRedrawMenu) {
-     drawMenu(menuTitles[3], false, getScoreText(selectedItem), sizeof(scores)/sizeof(PlayerScore));
+     drawMenu(MENU_TITLE_HIGHSCORES, false, getScoreText(selectedItem), sizeof(scores)/sizeof(PlayerScore));
   }
 
 }
 
+/**
+ * Composes the setting text with its value and returns it for displaying.
+ */
 String getSettingText(short item) {
 
   String message = "";
@@ -291,16 +304,18 @@ String getSettingText(short item) {
   message.concat(settingsItems[item]);
 
   switch (item) {
-    case 0:
+    case SETTING_NAME:
       message.concat(systemSettings.name);
       break;
-    case 1:
+    case SETTING_DIFFICULTY:
       message.concat(systemSettings.difficulty);
       break;
-    case 5:
+    case SETTING_BACK_TO_MENU:
       break;
     default:
-      message.concat(systemSettings.brightnessArray[item-2]);
+      // first 2 settings aren't related to brightness array; to avoid padding in the vector (2 0 positions) i subtract from the selection index
+      // the value 2 - so the first brightness setting, which is setting number 3, has a corresponding value of 1 in the brightness array.
+      message.concat(systemSettings.brightnessArray[item - SETTING_NUMBERED_ITEM_PADDING]);
       break;          
   }
 
@@ -318,10 +333,13 @@ void applySettings() {
 
 }
 
-
+/**
+ * For the selected setting, if user has interacted with it, update its value, and make sure not to exit bounds.
+ */
 void updateSetting(short userInput) {
   short lowerBound, upperBound, currentValue;
 
+  // all numbered settings are bound from 1-9 except for difficulty which is 1-3. handling that here
   if (selectedItem == SETTING_DIFFICULTY) {
     lowerBound = SETTINGS_MIN_DIFFICULTY;
     upperBound = SETTINGS_MAX_DIFFICULTY;
@@ -332,9 +350,7 @@ void updateSetting(short userInput) {
     currentValue = systemSettings.brightnessArray[selectedItem-2];
   }
 
-  Serial.print(lowerBound);
-  Serial.print(" ");
-  Serial.println(upperBound);
+  // don't escape bounds
   if (userInput == AXIS_NEGATIVE && currentValue < upperBound) {
     shouldRedrawMenu = true;
     currentValue += 1;
@@ -351,10 +367,13 @@ void updateSetting(short userInput) {
     systemSettings.brightnessArray[selectedItem-2] = currentValue;
   }
 
+  // make the settings take effect immediately
   applySettings();
 }
 
-
+/**
+ * Loop for SYSTEM_STATE_MENU_SETTINGS state.
+ */
 void settingsLoop() {
   short userInput = getMenuUserInput(joystickY);
   
@@ -370,6 +389,23 @@ void settingsLoop() {
   } 
 
   if (shouldRedrawMenu) {
-     drawMenu(menuTitles[2], true, getSettingText(selectedItem), settingsItemsCount, isEditingSetting);
+     drawMenu(MENU_TITLE_SETTINGS, true, getSettingText(selectedItem), settingsItemsCount, isEditingSetting);
   }
+}
+
+/**
+ * Game splash function, draw the welcome text and wait.
+ */
+void doSplash() {
+  
+  setMatrixImage(happyMatrixSymbol);
+  lcd.clear();
+  lcd.setCursor(SPLASH_TEXT_POS);
+  lcd.print(SPLASH_TEXT);
+  
+  delay(SPLASH_TIME_MS);
+  systemState = SYSTEM_STATE_MENU;
+  shouldRedrawMenu = true;
+  setMatrixImage(menuMatrixSymbol);
+
 }

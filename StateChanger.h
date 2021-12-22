@@ -10,19 +10,24 @@ void joystickButtonClick() {
   shouldRedrawMenu = true;
 
   switch (systemState) {
+    
     case SYSTEM_STATE_MENU:
+      setMatrixImage(menuMatrixSymbol);
       switch (selectedItem) {
         case 0:
           systemState = SYSTEM_STATE_GAME;
           break;
         case 1:
+          setMatrixImage(settingsMatrixSymbol);
           systemState = SYSTEM_STATE_MENU_SETTINGS;
           isEditingSetting = false;
           break;
         case 2:
+          setMatrixImage(highscoreMatrixSymbol);
           systemState = SYSTEM_STATE_MENU_HIGHSCORES;
           break;
         case 3:
+          setMatrixImage(aboutMatrixSymbol);
           systemState = SYSTEM_STATE_MENU_ABOUT;
           break;
       }
@@ -30,10 +35,12 @@ void joystickButtonClick() {
       return;
 
     case SYSTEM_STATE_MENU_ABOUT:
+      setMatrixImage(menuMatrixSymbol);
       systemState = SYSTEM_STATE_MENU;
       return;
 
     case SYSTEM_STATE_MENU_HIGHSCORES:
+      setMatrixImage(menuMatrixSymbol);
       systemState = SYSTEM_STATE_MENU;
       return;
 
@@ -66,7 +73,7 @@ void joystickButtonClick() {
       return;
       
     case SYSTEM_STATE_GAME_END:
-      setMatrixImage(happyMatrixSymbol);
+      setMatrixImage(menuMatrixSymbol);
       gameState = SYSTEM_STATE_GAME_SETUP;
       systemState = SYSTEM_STATE_MENU;
       return;

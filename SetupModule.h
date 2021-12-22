@@ -9,14 +9,13 @@ void joystickSetup() {
 }
 
 void memorySetup() {
-//  strcpy(scores[0].name, "AAAAA");
-//  strcpy(scores[1].name, "AAAAA");
-//  strcpy(scores[2].name, "AAAAA");
-  EEPROM.get(0, scores);
-  EEPROM.get(100, systemSettings);
+  
+  EEPROM.get(EEPROM_HIGHSCORES_MEMORY_LOCATION, scores);
+  EEPROM.get(EEPROM_SETTINGS_MEMORY_LOCATION, systemSettings);
 }
 
 void buzzerSetup() {
+  
   pinMode(BUZZER_PIN, OUTPUT);
   noTone(BUZZER_PIN);
 }
@@ -24,25 +23,23 @@ void buzzerSetup() {
 void lcdSetup() {
    
   applySettings();
-  lcd.createChar(0, downArrowSymbol);
-  lcd.createChar(1, upArrowSymbol);
-  lcd.createChar(2, bothArrowSymbol);
-  lcd.createChar(3, clickSymbol);
-  lcd.createChar(4, enterSymbol);
-  lcd.createChar(5, heartSymbol);
+  lcd.createChar(DOWN_SYMBOL, downArrowSymbol);
+  lcd.createChar(UP_SYMBOL, upArrowSymbol);
+  lcd.createChar(BOTH_SYMBOL, bothArrowSymbol);
+  lcd.createChar(CLICK_SYMBOL, clickSymbol);
+  lcd.createChar(ENTER_SYMBOL, enterSymbol);
+  lcd.createChar(HEART_SYMBOL, heartSymbol);
 
   lcd.begin(16, 2);
 
   // end lcd setup
-  drawMenu(menuTitles[1], true, menuItems[selectedItem], menuItemsCount, false);
+  drawMenu(MENU_TITLE_GAME, true, menuItems[selectedItem], menuItemsCount, false);
   pinMode(WARNING_LED_PIN, OUTPUT);
-  analogWrite(WARNING_LED_PIN, 1000);
 
 }
 
 void matrixSetup() {
   
   matrix.shutdown(0, false);
-  matrix.setIntensity(0, 2);
   matrix.clearDisplay(0);
 }

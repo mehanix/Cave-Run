@@ -39,6 +39,7 @@
 #define BOMB_EXPLOSION_INTERVAL 1500
 #define LED_FLASHING_INTERVAL 200
 
+#define BAUD 9600
 /******** END HARDWARE *********/
 
 /******** GLOBAL STATES *********/
@@ -62,6 +63,17 @@
 
 /******** END GLOBAL STATES *********/
 
+/************* MENU *****************/
+
+#define MENU_TITLE_WELCOME "Welcome"
+#define MENU_TITLE_GAME "Cave Run"
+#define MENU_TITLE_SETTINGS "Settings"
+#define MENU_TITLE_HIGHSCORES "Hall of Fame"
+#define MENU_TITLE_ABOUT "About"
+
+
+/*********** END MENU ***************/
+
 /******** SETTINGS BOUNDS ***********/
 // for contrast, brightness, etc
 #define SETTINGS_MIN_ADJUSTMENT_VALUE 1
@@ -72,10 +84,16 @@
 #define SETTINGS_MIN_DIFFICULTY 1
 #define SETTINGS_MAX_DIFFICULTY 3
 
+#define SETTING_NAME 0
 #define SETTING_DIFFICULTY 1
 #define SETTING_LCD_CONTRAST 2
 #define SETTING LCD_BRIGHTNESS 3
 #define SETTING_MATRIX_BRIGHTNESS 4
+#define SETTING_BACK_TO_MENU 5
+
+#define SETTING_NUMBERED_ITEM_PADDING 2
+
+#define NAME_LENGTH 5
 
 /******** END SETTINGS BOUNDS *******/
 
@@ -88,9 +106,7 @@
 #define MAP_SIZE 16
 #define MAX_KEY_COUNT 9
 #define MAX_BOMB_COUNT 9
-
-#define STARTING_ROOM_X 3
-#define STARTING_ROOM_Y 3
+#define LIVES_COUNT 3
 
 #define DIFFICULTY_EASY 1
 #define DIFFICULTY_MEDIUM 2
@@ -116,4 +132,59 @@
 #define DOOR_OPEN 2
 #define DOOR_ENTER 3
 
+#define DOOR_POS_X 0
+#define DOOR_POS_Y 5
+
 /**************** END_GAME **************/
+
+/*********** LCD CONSTANTS **************/
+
+#define LCD_CHARACTER_LENGTH 15
+// splash
+#define SPLASH_TEXT_POS 4,0
+#define SPLASH_TIME_MS 2000
+#define SPLASH_TEXT "Welcome!"
+
+#define ABOUT_NAME_TEXT_POS 0,0
+#define ABOUT_GITHUB_TEXT_POS 0,1
+
+#define LEVEL_TEXT_POS 4,0
+#define LIVES_TEXT_POS 6,0
+#define KEYS_LEFT_TEXT_POS 15,0
+#define DOOR_OPEN_TEXT_POS 7,1
+
+#define LEVEL_LABEL_TEXT_POS 0,0
+#define KEY_LABEL_TEXT_POS 10,0
+#define TIME_LABEL_TEXT_POS 0,1
+#define SCORE_LABEL_TEXT_POS 7,1
+
+#define TIME_TEXT_POS 5,1
+#define SCROLLBAR_TEXT_POS 15,1
+
+#define NAME_TEXT_POS 0,0
+#define SAVE_TEXT_POS 11,0
+#define SAVE_CURSOR_POS 12, 1
+#define SAVE_TEXT "Save"
+#define SELECTION_CARET "^"
+
+#define DOOR_TEXT "Door:Open"
+#define LEVEL_LABEL_TEXT "Lvl:"
+#define KEY_LABEL_TEXT "Keys:"
+#define TIME_LABEL_TEXT "Time:"
+#define SCORE_LABEL_TEXT " Pts:"
+
+#define DOWN_SYMBOL 0
+#define UP_SYMBOL 1
+#define BOTH_SYMBOL 2
+#define CLICK_SYMBOL 3
+#define ENTER_SYMBOL 4
+#define HEART_SYMBOL 5
+
+/********** END LCD CONSTANTS ***********/
+
+/********** EEPROM MEMORY ***************/
+
+#define EEPROM_SETTINGS_MEMORY_LOCATION 100
+#define EEPROM_HIGHSCORES_MEMORY_LOCATION 0
+
+/********** END EEPROM MEMORY ***********/

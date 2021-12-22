@@ -35,11 +35,12 @@ byte lcdTime = 0;
 long long powerupStartTime = 0;
 bool isPowerupActive = false;
 bool isPowerupAvailable = true;
+const Coordinate playerStartingPos = {1, 1}; // can't define an entire object; i tried; so const it is 
 
 struct Player {
-  Coordinate pos = {1, 1};
-  Coordinate previousPos = {1, 1};
-  byte lives = 3;
+  Coordinate pos = playerStartingPos;
+  Coordinate previousPos = playerStartingPos;
+  byte lives = LIVES_COUNT;
   long long lastMoveTime = 0;
   bool shouldRedraw = true;
   byte keysLeft;
@@ -48,10 +49,11 @@ struct Player {
   long long lastBlinkTime = 0;
 } player;
 
+
 struct RoomData {
     short size;
-    short keyCount = 3;
-    short bombCount = 1;
+    short keyCount = 0;
+    short bombCount = 0;
     Coordinate keys[MAX_KEY_COUNT];
     Coordinate bombs[MAX_BOMB_COUNT];
     Coordinate doorPos;
@@ -59,10 +61,10 @@ struct RoomData {
 } level;
 
 const byte difficultyItemCountRanges[4][2] = {
-  {0,0},
-  {3,5},
-  {4,7},
-  {5,8}
+  {0,0}, // padding
+  {3,5}, // item count range for EASY difficulty - 3/5 keys/bombs per level
+  {4,7}, // same but for medium
+  {5,8}  // same but for hard
 };
 const byte configRoomCountsTilChange[4][2] = {{0,0}, {3,3}, {1,2}, {0,2}};
 byte roomCountsTilChange[4][2];
@@ -81,7 +83,6 @@ byte roomTypeIndex = 0;
   }
   
   // level reset
-  
   level.size = 0;
   level.keyCount = 0;
   level.bombCount = 0;
@@ -92,13 +93,12 @@ byte roomTypeIndex = 0;
   for (auto &bomb: level.bombs) {
     bomb = {};  
   }
-  level.doorPos = {0,0};
+  level.doorPos = {DOOR_POS_X, DOOR_POS_Y};
   level.isDoorOpen = false;
 
   // player-related resets
-  
-  player.pos = {1, 1};
-  player.previousPos = {1, 1};
+  player.pos = playerStartingPos;
+  player.previousPos = playerStartingPos;
   
  }
 
@@ -146,59 +146,58 @@ void resetGame() {
 }
 
 Coordinate getObjectRegion(Coordinate obj) {
-  return {obj.x / MATRIX_SIZE, obj.y / MATRIX_SIZE }; 
+  return {obj.x / MATRIX_SIZE, obj.y / MATRIX_SIZE}; 
 }
 
 
 void drawLcdPlayerStats() {
   
   // level
-  lcd.setCursor(4,0);
+  lcd.setCursor(LEVEL_TEXT_POS);
   lcd.print(currentLevel);
   
   // lives
-  lcd.setCursor(6,0);
+  lcd.setCursor(LIVES_TEXT_POS);
   lcd.print("   ");
-  lcd.setCursor(6,0);
+  lcd.setCursor(LIVES_TEXT_POS);
   for (int i = 0; i < player.lives; i++) {
-    lcd.write(byte(5));
+    lcd.write(byte(HEART_SYMBOL));
   }
   
   // keys left or door. not enough lcd space for both
-  lcd.setCursor(15,0);
+  lcd.setCursor(KEYS_LEFT_TEXT_POS);
   lcd.print(player.keysLeft);
  
   if (player.keysLeft == 0) {
-      lcd.setCursor(7,1);
-      lcd.print("Door Open!");
+      lcd.setCursor(DOOR_OPEN_TEXT_POS);
+      lcd.print(DOOR_TEXT);
   }
-  
-  
 }
 
 void drawLcdText() {
 
-  lcd.setCursor(0,0);
-  lcd.print("Lvl:");
+  lcd.setCursor(LEVEL_LABEL_TEXT_POS);
+  lcd.print(LEVEL_LABEL_TEXT);
   
-  lcd.setCursor(10,0);
-  lcd.print("Keys:");
+  lcd.setCursor(KEY_LABEL_TEXT_POS);
+  lcd.print(KEY_LABEL_TEXT);
   
-  lcd.setCursor(0,1);
-  lcd.print("Time:");
+  lcd.setCursor(TIME_LABEL_TEXT_POS);
+  lcd.print(TIME_LABEL_TEXT);
   lcd.print(GAME_DURATION);
 
-  lcd.setCursor(7,1);
-  lcd.print(" Pts:");
+  lcd.setCursor(SCORE_LABEL_TEXT_POS);
+  lcd.print(SCORE_LABEL_TEXT);
 
   drawLcdPlayerStats();
 }
 
 void drawLcdTime(byte lcdTime) {
-  lcd.setCursor(5, 1);
-  if (lcdTime < 10) {
+  lcd.setCursor(TIME_TEXT_POS);
+  
+  if (lcdTime < 10) { // single digits need padding
     lcd.print("  ");
-    lcd.setCursor(5, 1);
+    lcd.setCursor(TIME_TEXT_POS);
   }
   lcd.print(lcdTime);
 }
@@ -229,8 +228,6 @@ void drawMap() {
 
   player.previousPos = player.pos;
   shouldRedrawMap = false;
-  
-  
 }
 
 void drawBombs() {
@@ -250,6 +247,7 @@ void drawBombs() {
  * Using delay as i want to freeze the entire game for one second anyway.
  */
 void updatePowerup() {
+  
   if (!isPowerupActive) {
     return;
   }
@@ -261,9 +259,6 @@ void updatePowerup() {
   shouldRedrawMap = true;
   player.shouldRedraw = true;
   isPowerupActive = false;
-  
-
-  
 }
 /**
  * Handles scoreable events by adding their respective formula values to the score. Most are time-based.
@@ -287,7 +282,10 @@ void updateScoreEvent(byte event) {
       player.score += 2 * lcdTime;
       break;
   }
-  shouldRedrawScore = true;
+
+  if (level.isDoorOpen) {
+    shouldRedrawScore = false;  
+  }
 }
 
 
@@ -301,18 +299,18 @@ void updateScoreEvent(byte event) {
 void generateMap(byte roomSize) {
   
   for(int i = 0; i < roomSize; i++) {
-     gameMap[i][0] = 1;
-     gameMap[i][roomSize - 1] = 1;
+     gameMap[i][0] = WALL;
+     gameMap[i][roomSize - 1] = WALL;
 
   }
 
   for(int j = 0; j < roomSize; j++) {
-      gameMap[0][j] = 1;
-      gameMap[roomSize - 1][j] = 1;
+      gameMap[0][j] = WALL;
+      gameMap[roomSize - 1][j] = WALL;
   }
 
-  level.doorPos.x = 0;
-  level.doorPos.y = 5;
+  level.doorPos.x = DOOR_POS_X;
+  level.doorPos.y = DOOR_POS_Y;
 
 }
 
@@ -321,9 +319,8 @@ void generateMap(byte roomSize) {
  */
 bool checkIfColliding(Coordinate point) {
 
-  Coordinate playerPos {1, 1};
   // player start
-  if (point == playerPos) {
+  if (point == playerStartingPos) {
     return false;
   }
 
@@ -400,12 +397,6 @@ byte getRoomSizeModifier() {
  */
 void generateLevelParams() {
 
-  Serial.print("aaa");
-  Serial.println( roomCountsTilChange[difficulty][roomTypeIndex]);
-    Serial.print("b");
-  Serial.println( difficulty);
-    Serial.print("c");
-  Serial.println( roomTypeIndex);
   // room size => a difficulty has a number of small/mid sized rooms, followed by large rooms
   // if i already generated enough types of this room, go to the next type of room
   if (roomCountsTilChange[difficulty][roomTypeIndex] == 0) {
@@ -470,9 +461,9 @@ void drawPlayer() {
   // should redraw => player moved, so redraw what is needed
   if (player.shouldRedraw) {
     
-    matrix.setLed(0, player.previousPos.x % 8, player.previousPos.y % 8, false);
+    matrix.setLed(0, player.previousPos.x % MATRIX_SIZE, player.previousPos.y % MATRIX_SIZE, false);
     
-    matrix.setLed(0, player.pos.x % 8, player.pos.y % 8, player.blinkStatus);
+    matrix.setLed(0, player.pos.x % MATRIX_SIZE, player.pos.y % MATRIX_SIZE, player.blinkStatus);
     player.shouldRedraw = false;
   }
 }
@@ -650,14 +641,18 @@ void updateBombRadar() {
   }
 }
 
-void endGameDisplay(byte image[], String message) {
-  
+void endGameDisplay(byte image[]) {
+  String firstRow = "Game| ";
+  String secondRow = "Over| score:";
+  firstRow.concat(String(systemSettings.name));
+  firstRow.concat("'s");
+  secondRow.concat(String(player.score));
+
   setMatrixImage(image);
-  lcd.setCursor((15 - message.length())/2, 0);
-  lcd.print(message);
+  lcd.setCursor(0, 0);
+  lcd.print(firstRow);
   lcd.setCursor(0, 1);
-  lcd.print("Your score:");
-  lcd.print(player.score);
+  lcd.print(secondRow);
 
 }
 
@@ -667,11 +662,11 @@ void endGame(byte reason) {
 
   switch (reason) {
     case GAME_END_TIMEOUT:
-      endGameDisplay(happyMatrixSymbol, "== Time's up! ==");
+      endGameDisplay(happyMatrixSymbol);
       break;
 
     case GAME_END_NO_LIVES:
-      endGameDisplay(sadMatrixSymbol, "==  You died!  ==");
+      endGameDisplay(sadMatrixSymbol);
       break; 
   }
 
