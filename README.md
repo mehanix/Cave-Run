@@ -74,6 +74,10 @@ _**Don't get blown up! 💥**_
 <div><img src="./assets/media.png"></div>
   <br/>
 
-<div align=center><img src="./assets/build.png" style="width:60%"></div>
+<div align=center>
+  <img src="./assets/build.png" style="width:60%">
+<a href="https://www.youtube.com/watch?v=kI80q4XZILo"><img src="https://img.youtube.com/vi/kI80q4XZILo/0.jpg" alt="Cave Run Video"></a>
 
-[Early Demo](https://youtu.be/ydcTGkUH4vE)
+</div>
+
+
