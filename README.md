@@ -1,4 +1,4 @@
-<div align=center> <img src="./assets/logo.png"></div>
+<div align=center> <img src="./assets/logo.png" style="width:75%"></div>
 
 <br/><br/>
 <br/>
@@ -11,30 +11,70 @@ This game was created as part of the Introduction to Robotics course I took duri
 I chose this game because I believed that it would best fit the restrictions of the hardware (8x8 single-color led matrices don't allow lots of expression 😛). I also wanted to implement a game with a panning camera, I thought it would be an interesting technical challenge. 
 
   I'm not aware of any other game that plays similarly - I'd call it a bit similar to Minesweeper, but that's about it.
-## What is Cave Run
+  
+<div align=center><img src="./assets/game-description.png"></div>
+  <br/>
+  
+🔥**Cave Run**🔥 is a game where you must _escape as many rooms as you can_ in 60 seconds ⌚.
 
-Cave Run is a game where you are supposed to escape a collection of rooms by collecting all the keys while avoiding the bombs. Sadly, the bombs are buried under the ground, but thankfully you are equipped with your trusty radar that warns you if you're approaching a bomb. Don't get blown up!
+To exit a room, you must collect all the keys 🔑 while avoiding the bombs 💣. 
 
-### Features:
+The bombs are buried underground, but thankfully you are equipped with your trusty radar 📡 that warns you if you're approaching a bomb. 
+
+_**Don't get blown up! 💥**_
+
+<img src="./assets/features.png" style="width:75%">
+
+
 😎 Complete menu
 
-😎 Procedural generation
+🗺 Procedural generation
 
-😎 Multiple difficulty settings
+🏋 Multiple difficulty settings
 
-😎 Multple room sizes
+🔲 Multple room sizes
 
-😎 Scoreboard
+🏆 Scoreboard
 
-😎 Customizable settings
+🛠 Customizable settings
 
-😎 Theme song and sound effects!!!! as well as a muting option lol
+🎹 Theme song and sound effects!!!! as well as a muting option 
 
-😎 Power-up: on click, see bombs in room
+⬆ Power-up: on click, see bombs in room
 
-😎 Endless fun!
+🎉 Endless fun!
+
+<div align=center><img src="./assets/how-to-play.png"></div>
+  <br/>
+    <br/>
+  <div align=center ><img src="./assets/instructions.png" style="width:75%"></div>
+  <br/>
+
+<div align=center><img src="./assets/components.png"></div>
+  <br/>
+  
+ 💥 1 Arduino Uno
+ 
+ 💥 1 8x8 LED Matrix
+ 
+ 💥 1 16x2 LCD 
+ 
+ 💥 1 joystick
+ 
+ 💥 1 passive buzzer
+ 
+ 💥 1 5k Ohm potentiometer
+ 
+ 💥 1 matrix driver
+ 
+ 💥 1 red LED
+ 
+ 💥 lots and lots of wires
 
 
-## Photos & Videos
-![photo](https://i.imgur.com/96mNiSs.jpg)
+<div align=center><img src="./assets/media.png"></div>
+  <br/>
+
+<div align=center><img src="./assets/build.png" style="width:60%"></div>
+
 [Early Demo](https://youtu.be/ydcTGkUH4vE)
