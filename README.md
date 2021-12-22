@@ -76,7 +76,7 @@ _**Don't get blown up! 💥**_
 
 <div align=center>
   <img src="./assets/build.png" style="width:60%">
-<a href="https://www.youtube.com/watch?v=kI80q4XZILo"><img src="https://img.youtube.com/vi/kI80q4XZILo/0.jpg" alt="Cave Run Video"></a>
+<a href="https://www.youtube.com/watch?v=kI80q4XZILo"><img src="https://img.youtube.com/vi/kI80q4XZILo/1.jpg" alt="Cave Run Video"></a>
 
 </div>
 
