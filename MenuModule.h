@@ -1,4 +1,7 @@
-// main menu
+/**
+ * MenuModule.h - Everything concerning the menu and its logic 
+ */
+
 int menuDirection = AXIS_IDLE;
 
 String menuItems[] = {"Start Game", "Settings", "Highscores", "About"};

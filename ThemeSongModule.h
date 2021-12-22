@@ -1,3 +1,6 @@
+/**
+ * ThemeSongModule.h - Plays the theme song!!
+ */
 #include "Melody.h"
 
 int tempo = 200;

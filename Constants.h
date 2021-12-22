@@ -1,3 +1,8 @@
+/**
+ * Constants.h - Constants for everything in the game
+ */
+
+ 
 /******** HARDWARE *********/
 
 /***** LCD *****/

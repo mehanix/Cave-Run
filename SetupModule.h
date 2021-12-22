@@ -1,3 +1,6 @@
+/**
+ * SetupModule.h - Areas of concern: Holds setup functions for the hardware
+ */
 void stateChangerSetup() {
     attachInterrupt(digitalPinToInterrupt(JOYSTICK_BTN), joystickButtonClick, FALLING);
 }

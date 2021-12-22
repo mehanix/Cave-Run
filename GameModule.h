@@ -1,3 +1,7 @@
+/**
+ * GameModule.h - Game loop, scoring, level generation, item generation, player movement
+ */
+
 struct Coordinate {
   short x, y;
     
@@ -67,7 +71,7 @@ const byte difficultyItemCountRanges[4][2] = {
   {5,8}  // same but for hard
 };
 const byte configRoomCountsTilChange[4][2] = {{0,0}, {3,3}, {1,2}, {0,2}};
-byte roomCountsTilChange[4][2];
+byte roomCountsTilChange[2];
 byte roomTypeIndex = 0;
 
 /**
@@ -133,11 +137,14 @@ void resetGame() {
   lastLedChangeTime = 0;
 
   roomTypeIndex = 0;
-  for (int i = 0; i < 4; i++) {
-    roomCountsTilChange[i][0] = configRoomCountsTilChange[i][0];
-    roomCountsTilChange[i][1] = configRoomCountsTilChange[i][1];
-
-  }
+//  for (int i = 0; i < 4; i++) {
+//    roomCountsTilChange[i][0] = configRoomCountsTilChange[i][0];
+//    roomCountsTilChange[i][1] = configRoomCountsTilChange[i][1];
+//
+//  }
+  roomCountsTilChange[0] = configRoomCountsTilChange[difficulty][0];
+  roomCountsTilChange[1] = configRoomCountsTilChange[difficulty][1];
+  
   currentLevel = 0;
   gameState = SYSTEM_STATE_GAME_SETUP;
   
@@ -399,11 +406,11 @@ void generateLevelParams() {
 
   // room size => a difficulty has a number of small/mid sized rooms, followed by large rooms
   // if i already generated enough types of this room, go to the next type of room
-  if (roomCountsTilChange[difficulty][roomTypeIndex] == 0) {
+  if (roomCountsTilChange[roomTypeIndex] == 0) {
       roomTypeIndex += 1;
   }
   // mark the room as generated
-  roomCountsTilChange[difficulty][roomTypeIndex] -= 1;
+  roomCountsTilChange[roomTypeIndex] -= 1;
 
   switch (roomTypeIndex) {
     case (0):

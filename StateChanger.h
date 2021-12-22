@@ -1,4 +1,6 @@
-
+/**
+ * StateChanger.h - Area of concern: Handles interrupts that change the game state
+ */
 void joystickButtonClick() {
 
   volatile int curTime = millis();
