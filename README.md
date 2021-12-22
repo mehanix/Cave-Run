@@ -74,6 +74,6 @@ _**Don't get blown up! 💥**_
 <div><img src="./assets/media.png"></div>
   <br/>
 
-<div ><img src="./assets/build.png" style="width:60%"></div>
+<div align=center><img src="./assets/build.png" style="width:60%"></div>
 
 [Early Demo](https://youtu.be/ydcTGkUH4vE)
