@@ -23,7 +23,7 @@ The bombs are buried underground, but thankfully you are equipped with your trus
 
 _**Don't get blown up! 💥**_
 
-<img src="./assets/features.png" style="width:75%">
+<img src="./assets/features.png">
 
 😎 Complete menu
 
