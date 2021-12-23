@@ -1,6 +1,0 @@
-{
-    "configuration": "cpu=atmega328",
-    "board": "arduino:avr:nano",
-    "sketch": "Cave-Run.ino",
-    "port": "/dev/ttyACM0"
-}
