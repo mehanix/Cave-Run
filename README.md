@@ -43,6 +43,7 @@ _**Don't get blown up! 💥**_
 
 🎉 Endless fun!
 
+
 <div ><img src="./assets/how-to-play.png"></div>
   <br/>
     <br/>
@@ -62,17 +63,22 @@ _**Don't get blown up! 💥**_
  
  💥 1 passive buzzer
  
- 💥 1 5k Ohm potentiometer
+ 💥 1 10k Ohm potentiometer
  
  💥 1 matrix driver
  
  💥 1 red LED
  
  💥 lots and lots of wires
+ 
+<br />
+<a href="https://github.com/mehanix/Cave-Run/wiki" ><img src="./assets/technical-docs.png" style="width:55%" alt="Cave Run Wiki"></a>
 
+  <br/>
+  <br/>
 
 <div><img src="./assets/media.png"></div>
-  <br/>
+
 
 <div align=center>
   <img src="./assets/build.png" style="width:60%">
@@ -80,4 +86,5 @@ _**Don't get blown up! 💥**_
 
 </div>
 
+<br />
 
