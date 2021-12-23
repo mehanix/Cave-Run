@@ -2,20 +2,19 @@
  * Constants.h - Constants for everything in the game
  */
 
- 
 /******** HARDWARE *********/
 
 /***** LCD *****/
 
-#define LCD_RS 8 
-#define LCD_EN 6 
-#define LCD_D4 A5 
-#define LCD_D5 4 
+#define LCD_RS 8
+#define LCD_EN 6
+#define LCD_D4 A5
+#define LCD_D5 4
 #define LCD_D6 9
 #define LCD_D7 13
 #define LCD_V0 5
 #define LCD_BACKLIGHT 10
-          
+
 /***** MATRIX *****/
 
 #define MATRIX_DIN_PIN 12
@@ -44,6 +43,7 @@
 #define BOMB_EXPLOSION_INTERVAL 1500
 #define LED_FLASHING_INTERVAL 200
 
+#define DEBOUNCE_DELAY 300
 #define BAUD 9600
 /******** END HARDWARE *********/
 
@@ -65,7 +65,6 @@
 #define SYSTEM_STATE_GAME_LOOP 11
 #define SYSTEM_STATE_GAME_END 12
 
-
 /******** END GLOBAL STATES *********/
 
 /************* MENU *****************/
@@ -75,7 +74,6 @@
 #define MENU_TITLE_SETTINGS "Settings"
 #define MENU_TITLE_HIGHSCORES "Hall of Fame"
 #define MENU_TITLE_ABOUT "About"
-
 
 /*********** END MENU ***************/
 
@@ -146,28 +144,28 @@
 
 #define LCD_CHARACTER_LENGTH 15
 // splash
-#define SPLASH_TEXT_POS 4,0
+#define SPLASH_TEXT_POS 4, 0
 #define SPLASH_TIME_MS 2000
 #define SPLASH_TEXT "Welcome!"
 
-#define ABOUT_NAME_TEXT_POS 0,0
-#define ABOUT_GITHUB_TEXT_POS 0,1
+#define ABOUT_NAME_TEXT_POS 0, 0
+#define ABOUT_GITHUB_TEXT_POS 0, 1
 
-#define LEVEL_TEXT_POS 4,0
-#define LIVES_TEXT_POS 6,0
-#define KEYS_LEFT_TEXT_POS 15,0
-#define DOOR_OPEN_TEXT_POS 7,1
+#define LEVEL_TEXT_POS 4, 0
+#define LIVES_TEXT_POS 6, 0
+#define KEYS_LEFT_TEXT_POS 15, 0
+#define DOOR_OPEN_TEXT_POS 7, 1
 
-#define LEVEL_LABEL_TEXT_POS 0,0
-#define KEY_LABEL_TEXT_POS 10,0
-#define TIME_LABEL_TEXT_POS 0,1
-#define SCORE_LABEL_TEXT_POS 7,1
+#define LEVEL_LABEL_TEXT_POS 0, 0
+#define KEY_LABEL_TEXT_POS 10, 0
+#define TIME_LABEL_TEXT_POS 0, 1
+#define SCORE_LABEL_TEXT_POS 7, 1
 
-#define TIME_TEXT_POS 5,1
-#define SCROLLBAR_TEXT_POS 15,1
+#define TIME_TEXT_POS 5, 1
+#define SCROLLBAR_TEXT_POS 15, 1
 
-#define NAME_TEXT_POS 0,0
-#define SAVE_TEXT_POS 11,0
+#define NAME_TEXT_POS 0, 0
+#define SAVE_TEXT_POS 11, 0
 #define SAVE_CURSOR_POS 12, 1
 #define SAVE_TEXT "Save"
 #define SELECTION_CARET "^"
@@ -184,6 +182,7 @@
 #define CLICK_SYMBOL 3
 #define ENTER_SYMBOL 4
 #define HEART_SYMBOL 5
+#define TRIANGLE_SYMBOL 6
 
 /********** END LCD CONSTANTS ***********/
 

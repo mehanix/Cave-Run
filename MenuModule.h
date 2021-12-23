@@ -21,7 +21,7 @@ volatile int nameEditState = SYSTEM_STATE_NAME_EDIT_LOCKED;
 bool shouldRedrawNameEdit = true;
 
 // i chose to hold the brightness settings in a short array as they're all numbers (except the name) in order to write more generic control functions
-// consult the settings constants section for the corresponding indices 
+// consult the settings constants section for the corresponding indices
 struct Settings {
   char name[6];
   short difficulty;
@@ -45,7 +45,6 @@ String aboutText[] = {"Nicoleta Ciausu", "git.io/JMQEj"};
  * Only read off one axis, and disable scrolling-through-items by holding the joystick.
  */
 short getMenuUserInput(int axis) {
-
   short reading = axis;
   if (reading == AXIS_IDLE) {
     didReadJoystick = false;
@@ -61,7 +60,6 @@ short getMenuUserInput(int axis) {
   return AXIS_IDLE;
 }
 
-
 void saveSettings() {
   EEPROM.put(EEPROM_SETTINGS_MEMORY_LOCATION, systemSettings);
 }
@@ -71,7 +69,7 @@ void saveSettings() {
  */
 void saveScore() {
   bool shouldUpdateEEPROM = false;
-  for(int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
     if (currentPlayer.score > scores[i].score) {
       strcpy(scores[i].name, systemSettings.name);
       scores[i].score = currentPlayer.score;
@@ -83,12 +81,10 @@ void saveScore() {
   if (shouldUpdateEEPROM) {
     EEPROM.put(EEPROM_HIGHSCORES_MEMORY_LOCATION, scores);
   }
-  
 }
 
 // change system state depending on selected setting to edit
 void doSettingsAction() {
-
   if (isEditingSetting) {
     isEditingSetting = false;
     saveSettings();
@@ -103,17 +99,16 @@ void doSettingsAction() {
       return;
 
     case 0:
-    
+
       systemState = SYSTEM_STATE_NAME_EDIT;
       if (nameEditState == SYSTEM_STATE_NAME_EDIT_UNLOCKED) {
         nameEditState = SYSTEM_STATE_NAME_EDIT_LOCKED;
       } else {
         nameEditState = SYSTEM_STATE_NAME_EDIT_UNLOCKED;
-     
       }
       shouldRedrawNameEdit = true;
       return;
-      
+
     default:
       isEditingSetting = true;
       return;
@@ -123,7 +118,7 @@ void doSettingsAction() {
  * Updates user menu selection, making sure not to go out of the item count bounds.
  */
 void updateLcdMenu(short userInput, short itemCount) {
-  if (userInput == AXIS_NEGATIVE && selectedItem < (itemCount-1)) {
+  if (userInput == AXIS_NEGATIVE && selectedItem < (itemCount - 1)) {
     shouldRedrawMenu = true;
     selectedItem += 1;
   }
@@ -147,10 +142,10 @@ byte getCenteredTextPosition(String text) {
 void drawMenu(String title, bool showCaret, String option, short optionsCount, bool isEditingSetting = false) {
   lcd.clear();
   short titleCursorPos = getCenteredTextPosition(title);
-  
-  lcd.setCursor(titleCursorPos,0);
+
+  lcd.setCursor(titleCursorPos, 0);
   lcd.print(title);
-  lcd.setCursor(0,1);
+  lcd.setCursor(0, 1);
 
   if (showCaret) {
     lcd.print(">");
@@ -158,25 +153,24 @@ void drawMenu(String title, bool showCaret, String option, short optionsCount, b
   lcd.print(option);
 
   if (isEditingSetting) {
-
     lcd.setCursor(SCROLLBAR_TEXT_POS);
     lcd.write(byte(ENTER_SYMBOL));
     shouldRedrawMenu = false;
-    return;  
+    return;
   }
 
   short scrollbarCharacter;
   if (selectedItem == 0) {
-      scrollbarCharacter = DOWN_SYMBOL;
-  } else if (selectedItem == optionsCount -1) {
-      scrollbarCharacter = UP_SYMBOL;
+    scrollbarCharacter = DOWN_SYMBOL;
+  } else if (selectedItem == optionsCount - 1) {
+    scrollbarCharacter = UP_SYMBOL;
   } else {
-      scrollbarCharacter = BOTH_SYMBOL;
+    scrollbarCharacter = BOTH_SYMBOL;
   }
-  
+
   lcd.setCursor(SCROLLBAR_TEXT_POS);
   lcd.write(byte(scrollbarCharacter));
-  shouldRedrawMenu = false;  
+  shouldRedrawMenu = false;
 }
 
 /**
@@ -184,7 +178,6 @@ void drawMenu(String title, bool showCaret, String option, short optionsCount, b
   * Redraw on LCD only on user action.
   */
 void menuLoop() {
-
   short userInput = getMenuUserInput(joystickY);
 
   if (userInput) {
@@ -200,7 +193,6 @@ void menuLoop() {
  * Changes selected letter in SYSTEM_STATE_EDIT name
  */
 void changeSelection(short input) {
-
   // keep in bounds, no wrapping back to the beginning of the name
   if (input == AXIS_POSITIVE && index < NAME_LENGTH) {
     index += 1;
@@ -213,7 +205,7 @@ void changeSelection(short input) {
 }
 
 void scrollThroughLetter(short input) {
-    if (input == AXIS_POSITIVE && systemSettings.name[index] < 'Z') {
+  if (input == AXIS_POSITIVE && systemSettings.name[index] < 'Z') {
     systemSettings.name[index] += 1;
   }
 
@@ -237,13 +229,17 @@ void drawNameEdit() {
   } else {
     lcd.setCursor(index, 1);
   }
-  lcd.print(SELECTION_CARET);
-  
+
+  if (nameEditState == SYSTEM_STATE_NAME_EDIT_UNLOCKED) {
+    lcd.print(SELECTION_CARET);
+  } else {
+    lcd.write(byte(TRIANGLE_SYMBOL));
+  }
+
   shouldRedrawNameEdit = false;
 }
 
 void nameEditLoop() {
-
   short userInput = getMenuUserInput(joystickX);
 
   if (userInput) {
@@ -257,11 +253,9 @@ void nameEditLoop() {
   if (shouldRedrawNameEdit) {
     drawNameEdit();
   }
-
 }
 
 void aboutLoop() {
-
   if (shouldRedrawMenu) {
     lcd.clear();
     lcd.setCursor(ABOUT_NAME_TEXT_POS);
@@ -288,20 +282,18 @@ void highscoresLoop() {
   short userInput = getMenuUserInput(joystickY);
 
   if (userInput) {
-      updateLcdMenu(userInput, highscoreItemsCount);
+    updateLcdMenu(userInput, highscoreItemsCount);
   }
 
   if (shouldRedrawMenu) {
-     drawMenu(MENU_TITLE_HIGHSCORES, false, getScoreText(selectedItem), sizeof(scores)/sizeof(PlayerScore));
+    drawMenu(MENU_TITLE_HIGHSCORES, false, getScoreText(selectedItem), sizeof(scores) / sizeof(PlayerScore));
   }
-
 }
 
 /**
  * Composes the setting text with its value and returns it for displaying.
  */
 String getSettingText(short item) {
-
   String message = "";
 
   message.concat(settingsItems[item]);
@@ -319,7 +311,7 @@ String getSettingText(short item) {
       // first 2 settings aren't related to brightness array; to avoid padding in the vector (2 0 positions) i subtract from the selection index
       // the value 2 - so the first brightness setting, which is setting number 3, has a corresponding value of 1 in the brightness array.
       message.concat(systemSettings.brightnessArray[item - SETTING_NUMBERED_ITEM_PADDING]);
-      break;          
+      break;
   }
 
   return message;
@@ -329,11 +321,9 @@ String getSettingText(short item) {
  * Applies settings values to the actual hardware.
  */
 void applySettings() {
-  
-    analogWrite(LCD_V0, systemSettings.brightnessArray[0] * SETTINGS_ADJUSTMENT_INCREMENT);
-    analogWrite(LCD_BACKLIGHT, systemSettings.brightnessArray[1] * SETTINGS_ADJUSTMENT_INCREMENT);
-    matrix.setIntensity(0, systemSettings.brightnessArray[2]);
-
+  analogWrite(LCD_V0, systemSettings.brightnessArray[0] * SETTINGS_ADJUSTMENT_INCREMENT);
+  analogWrite(LCD_BACKLIGHT, systemSettings.brightnessArray[1] * SETTINGS_ADJUSTMENT_INCREMENT);
+  matrix.setIntensity(0, systemSettings.brightnessArray[2]);
 }
 
 /**
@@ -350,7 +340,7 @@ void updateSetting(short userInput) {
   } else {
     lowerBound = SETTINGS_MIN_ADJUSTMENT_VALUE;
     upperBound = SETTINGS_MAX_ADJUSTMENT_VALUE;
-    currentValue = systemSettings.brightnessArray[selectedItem-2];
+    currentValue = systemSettings.brightnessArray[selectedItem - 2];
   }
 
   // don't escape bounds
@@ -367,7 +357,7 @@ void updateSetting(short userInput) {
   if (selectedItem == SETTING_DIFFICULTY) {
     systemSettings.difficulty = currentValue;
   } else {
-    systemSettings.brightnessArray[selectedItem-2] = currentValue;
+    systemSettings.brightnessArray[selectedItem - 2] = currentValue;
   }
 
   // make the settings take effect immediately
@@ -379,20 +369,19 @@ void updateSetting(short userInput) {
  */
 void settingsLoop() {
   short userInput = getMenuUserInput(joystickY);
-  
-  if (userInput) {
 
-      if (isEditingSetting) {
-        // if adjusting setting, update its value
-        updateSetting(userInput);
-      } else {
-        // if scrolling through settings, change it
-        updateLcdMenu(userInput, settingsItemsCount);
-      }
-  } 
+  if (userInput) {
+    if (isEditingSetting) {
+      // if adjusting setting, update its value
+      updateSetting(userInput);
+    } else {
+      // if scrolling through settings, change it
+      updateLcdMenu(userInput, settingsItemsCount);
+    }
+  }
 
   if (shouldRedrawMenu) {
-     drawMenu(MENU_TITLE_SETTINGS, true, getSettingText(selectedItem), settingsItemsCount, isEditingSetting);
+    drawMenu(MENU_TITLE_SETTINGS, true, getSettingText(selectedItem), settingsItemsCount, isEditingSetting);
   }
 }
 
@@ -400,15 +389,13 @@ void settingsLoop() {
  * Game splash function, draw the welcome text and wait.
  */
 void doSplash() {
-  
   setMatrixImage(happyMatrixSymbol);
   lcd.clear();
   lcd.setCursor(SPLASH_TEXT_POS);
   lcd.print(SPLASH_TEXT);
-  
+
   delay(SPLASH_TIME_MS);
   systemState = SYSTEM_STATE_MENU;
   shouldRedrawMenu = true;
   setMatrixImage(menuMatrixSymbol);
-
 }

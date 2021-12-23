@@ -1,3 +1,6 @@
+/**
+ * Cave-Run.ino - The main game file
+ */
 #include <LiquidCrystal.h>
 #include <LedControl.h>
 #include <EEPROM.h>
@@ -11,25 +14,21 @@
 #include "ThemeSongModule.h"
 
 void setup() {
-  
   joystickSetup();
   stateChangerSetup();
   memorySetup();
   lcdSetup();
   matrixSetup();
   buzzerSetup();
-  
+
   Serial.begin(BAUD);
   randomSeed(analogRead(RANDOM_PIN));
 }
 
 void loop() {
-  
   computeJoystickValues();
-  themeSongLoop();
 
   switch (systemState) {
-
     case SYSTEM_STATE_SPLASH:
       doSplash();
       break;
@@ -37,7 +36,7 @@ void loop() {
     case SYSTEM_STATE_MENU:
       menuLoop();
       break;
-      
+
     case SYSTEM_STATE_MENU_ABOUT:
       aboutLoop();
       break;
@@ -53,7 +52,7 @@ void loop() {
     case SYSTEM_STATE_NAME_EDIT:
       nameEditLoop();
       break;
-      
+
     case SYSTEM_STATE_GAME:
       gameLoop();
       break;
@@ -61,7 +60,8 @@ void loop() {
     case SYSTEM_STATE_GAME_END:
       gameEndLoop();
       break;
-      
   }
+
+  themeSongLoop();
   delay(2);
 }

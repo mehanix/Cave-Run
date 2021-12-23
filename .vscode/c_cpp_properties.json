@@ -18,9 +18,9 @@
             "includePath": [
                 "/home/nix/.arduino15/packages/arduino/hardware/avr/1.8.4/cores/arduino",
                 "/home/nix/.arduino15/packages/arduino/hardware/avr/1.8.4/variants/eightanaloginputs",
-                "/home/nix/Arduino/libraries/LiquidCrystal/src",
-                "/home/nix/Arduino/libraries/LedControl/src",
                 "/home/nix/.arduino15/packages/arduino/hardware/avr/1.8.4/libraries/EEPROM/src",
+                "/home/nix/Arduino/libraries/LedControl/src",
+                "/home/nix/Arduino/libraries/LiquidCrystal/src",
                 "/usr/lib/gcc/avr/5.4.0/include",
                 "/usr/lib/gcc/avr/5.4.0/include-fixed",
                 "/usr/lib/avr/include"

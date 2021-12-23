@@ -30,12 +30,12 @@ void themeSongLoop() {
   long long currentTime = millis();
 
   // if should still play current note - return
-  if (currentTime - noteChangeTime  < noteDuration) {
+  if (currentTime - noteChangeTime < noteDuration) {
     return;
   }
 
   noteChangeTime = currentTime;
-  
+
   // need to change the note
   noTone(buzzer);
 
@@ -47,12 +47,11 @@ void themeSongLoop() {
   } else if (divider < 0) {
     // dotted notes are represented with negative durations
     noteDuration = (wholenote) / abs(divider);
-    noteDuration *= 1.5; // dotted notes are longer
+    noteDuration *= 1.5;  // dotted notes are longer
   }
 
   // 10% pause, note change time
   tone(buzzer, melody[thisNote], noteDuration);
-  
-  thisNote += 2;
 
+  thisNote += 2;
 }
